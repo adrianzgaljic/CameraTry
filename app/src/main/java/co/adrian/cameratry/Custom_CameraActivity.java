@@ -5,6 +5,8 @@ import android.app.AlertDialog;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.pm.ActivityInfo;
+import android.content.res.Configuration;
 import android.graphics.PixelFormat;
 import android.hardware.Camera;
 import android.media.AudioManager;
@@ -20,6 +22,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import org.opencv.objdetect.CascadeClassifier;
@@ -72,12 +75,13 @@ public class Custom_CameraActivity extends Activity implements  AutoFocusCallbac
     int soundIdCountdown;
     int soundIdShutter;
     int cameraOrientation = CameraInfo.CAMERA_FACING_BACK;
+    int deviceOrientation = Configuration.ORIENTATION_PORTRAIT;
     Button flashButton;
     Button timerButton;
     Button imagesNumberButton;
     Button soundButton;
     Button cameraChangeButton;
-    //LinearLayout layoutDown;
+    LinearLayout layoutDown;
     //private ViewSwitcher switcher;
 
 
@@ -148,7 +152,7 @@ public class Custom_CameraActivity extends Activity implements  AutoFocusCallbac
         soundButton = (Button) findViewById(R.id.button_sound);
         cameraChangeButton = (Button) findViewById(R.id.button_change_camera);
 
-        //layoutDown = (LinearLayout)findViewById(R.id.linearLayoutDown);
+        layoutDown = (LinearLayout)findViewById(R.id.linearLayoutDown);
         //switcher = (ViewSwitcher) findViewById(R.id.profileSwitcher);
 
 
@@ -405,32 +409,45 @@ public class Custom_CameraActivity extends Activity implements  AutoFocusCallbac
 
     }
 
-    public static void setCameraDisplayOrientation(Activity activity,
+    public void setCameraDisplayOrientation(Activity activity,
                                                    int cameraId, android.hardware.Camera camera) {
+        Log.i(TAG,"orientation iside rotation method= " + deviceOrientation);
 
-        CameraInfo info =
-                new CameraInfo();
 
-        getCameraInfo(cameraId, info);
 
-        int rotation = activity.getWindowManager().getDefaultDisplay().getRotation();
-        int degrees = 0;
+            CameraInfo info =
+                    new CameraInfo();
 
-        switch (rotation) {
-            case Surface.ROTATION_0: degrees = 0; break;
-            case Surface.ROTATION_90: degrees = 90; break;
-            case Surface.ROTATION_180: degrees = 180; break;
-            case Surface.ROTATION_270: degrees = 270; break;
-        }
+            getCameraInfo(cameraId, info);
 
-        int result;
-        if (info.facing == CameraInfo.CAMERA_FACING_FRONT) {
-            result = (info.orientation + degrees) % 360;
-            result = (360 - result) % 360;  // compensate the mirror
-        } else {  // back-facing
-            result = (info.orientation - degrees + 360) % 360;
-        }
-        camera.setDisplayOrientation(result);
+            int rotation = activity.getWindowManager().getDefaultDisplay().getRotation();
+            int degrees = 0;
+
+            switch (rotation) {
+                case Surface.ROTATION_0:
+                    degrees = 0;
+                    break;
+                case Surface.ROTATION_90:
+                    degrees = 90;
+                    break;
+                case Surface.ROTATION_180:
+                    degrees = 180;
+                    break;
+                case Surface.ROTATION_270:
+                    degrees = 270;
+                    break;
+            }
+
+            int result;
+            if (info.facing == CameraInfo.CAMERA_FACING_FRONT) {
+                result = (info.orientation + degrees) % 360;
+                result = (360 - result) % 360;  // compensate the mirror
+            } else {  // back-facing
+                result = (info.orientation - degrees + 360) % 360;
+            }
+
+            camera.setDisplayOrientation(result);
+
 
     }
 
@@ -508,18 +525,24 @@ public class Custom_CameraActivity extends Activity implements  AutoFocusCallbac
             soundPool.play(soundIdShutter, 1, 1, 0, 0, 1);
         }
     }
-/*
+
     @Override
     public void onConfigurationChanged(Configuration myConfig) {
+        Log.i(TAG, "CHANGED");
+        setCameraDisplayOrientation(this, 0, mCamera);
         super.onConfigurationChanged(myConfig);
         int orient = getResources().getConfiguration().orientation;
+        deviceOrientation = orient;
+
         switch(orient) {
+
             case Configuration.ORIENTATION_LANDSCAPE:
                 //setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
 
-
+                Log.i(TAG, "landscape orientation");
                 break;
             case Configuration.ORIENTATION_PORTRAIT:
+
                 //setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
                 //LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
                 //params.gravity = RelativeLayout.ALIGN_PARENT_BOTTOM;
@@ -527,17 +550,14 @@ public class Custom_CameraActivity extends Activity implements  AutoFocusCallbac
                 //layoutDown.setLayoutParams(params);
                 //layoutDown.setGravity(Gravity.FILL);
                 //layoutDown.setOrientation(LinearLayout.HORIZONTAL);
-
-
-
-                Log.i("orientation", "portrait");
+                Log.i(TAG, "portrait orientation");
                 break;
             default:
                 setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
                 Log.i("orientation", "uncs");
         }
     }
-    */
+
 
 
 
