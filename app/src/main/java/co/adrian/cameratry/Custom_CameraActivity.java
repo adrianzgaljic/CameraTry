@@ -5,8 +5,6 @@ import android.app.AlertDialog;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.pm.ActivityInfo;
-import android.content.res.Configuration;
 import android.graphics.PixelFormat;
 import android.hardware.Camera;
 import android.media.AudioManager;
@@ -16,22 +14,20 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.View;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.ViewSwitcher;
 
 import org.opencv.objdetect.CascadeClassifier;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -81,8 +77,8 @@ public class Custom_CameraActivity extends Activity implements  AutoFocusCallbac
     Button imagesNumberButton;
     Button soundButton;
     Button cameraChangeButton;
-    LinearLayout layoutDown;
-    private ViewSwitcher switcher;
+    //LinearLayout layoutDown;
+    //private ViewSwitcher switcher;
 
 
 
@@ -103,9 +99,19 @@ public class Custom_CameraActivity extends Activity implements  AutoFocusCallbac
 
         // Lodaing cascade classifier
         try {
+            InputStream is = getResources().openRawResource(R.raw.lbpcascade_frontalface);
             File cascadeDir = getDir("cascade", Context.MODE_PRIVATE);
             File mCascadeFile = new File(cascadeDir, "haarcascade_frontalface_default.xml");
+            FileOutputStream os = new FileOutputStream(mCascadeFile);
+            byte[] buffer = new byte[4096];
+            int bytesRead;
+            while ((bytesRead = is.read(buffer)) != -1) {
+                os.write(buffer, 0, bytesRead);
+            }
+            is.close();
+            os.close();
             faceDetector = new CascadeClassifier(mCascadeFile.getAbsolutePath());
+            Log.i(TAG,"CASCADE ="+faceDetector);
         } catch (Exception e) {
             Log.e(TAG, "Error loading cascade ", e);
         }
@@ -142,8 +148,8 @@ public class Custom_CameraActivity extends Activity implements  AutoFocusCallbac
         soundButton = (Button) findViewById(R.id.button_sound);
         cameraChangeButton = (Button) findViewById(R.id.button_change_camera);
 
-        layoutDown = (LinearLayout)findViewById(R.id.linearLayoutDown);
-        switcher = (ViewSwitcher) findViewById(R.id.profileSwitcher);
+        //layoutDown = (LinearLayout)findViewById(R.id.linearLayoutDown);
+        //switcher = (ViewSwitcher) findViewById(R.id.profileSwitcher);
 
 
 
@@ -322,17 +328,6 @@ public class Custom_CameraActivity extends Activity implements  AutoFocusCallbac
             public void onClick(View v) {
                 detectionStarted = true;
                 tvCountDown.setText("");
-                        //RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,LinearLayout.LayoutParams.WRAP_CONTENT);
-                        //LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,LinearLayout.LayoutParams.WRAP_CONTENT);
-                        //LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-                        //params.gravity = RelativeLayout.ALIGN_PARENT_BOTTOM;
-                        //params.height = 80;
-
-                       // layoutDown.setLayoutParams(params);
-
-
-
-
                     }
         });
 
@@ -513,7 +508,7 @@ public class Custom_CameraActivity extends Activity implements  AutoFocusCallbac
             soundPool.play(soundIdShutter, 1, 1, 0, 0, 1);
         }
     }
-
+/*
     @Override
     public void onConfigurationChanged(Configuration myConfig) {
         super.onConfigurationChanged(myConfig);
@@ -526,11 +521,11 @@ public class Custom_CameraActivity extends Activity implements  AutoFocusCallbac
                 break;
             case Configuration.ORIENTATION_PORTRAIT:
                 //setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-                LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+                //LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
                 //params.gravity = RelativeLayout.ALIGN_PARENT_BOTTOM;
                 //params.height = 80;
                 //layoutDown.setLayoutParams(params);
-                layoutDown.setGravity(Gravity.FILL);
+                //layoutDown.setGravity(Gravity.FILL);
                 //layoutDown.setOrientation(LinearLayout.HORIZONTAL);
 
 
@@ -542,6 +537,7 @@ public class Custom_CameraActivity extends Activity implements  AutoFocusCallbac
                 Log.i("orientation", "uncs");
         }
     }
+    */
 
 
 
