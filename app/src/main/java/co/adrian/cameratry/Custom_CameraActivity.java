@@ -82,7 +82,7 @@ public class Custom_CameraActivity extends Activity implements  AutoFocusCallbac
     Button soundButton;
     Button cameraChangeButton;
     LinearLayout layoutDown;
-    private ViewSwitcher switcher;
+    //private ViewSwitcher switcher;
 
 
     public AutoFocusCallback thisClass = this;
