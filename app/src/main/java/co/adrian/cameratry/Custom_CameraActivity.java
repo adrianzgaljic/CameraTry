@@ -5,11 +5,13 @@ import android.app.AlertDialog;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.graphics.PixelFormat;
 import android.hardware.Camera;
 import android.media.AudioManager;
+import android.media.MediaScannerConnection;
 import android.media.SoundPool;
 import android.net.Uri;
 import android.os.Bundle;
@@ -83,6 +85,8 @@ public class Custom_CameraActivity extends Activity implements  AutoFocusCallbac
     Button soundButton;
     Button cameraChangeButton;
     LinearLayout layoutDown;
+    ImageView ivPhoto;
+    File storedImageFile;
     //private ViewSwitcher switcher;
 
 
@@ -155,6 +159,8 @@ public class Custom_CameraActivity extends Activity implements  AutoFocusCallbac
 
         layoutDown = (LinearLayout)findViewById(R.id.linearLayoutDown);
         //switcher = (ViewSwitcher) findViewById(R.id.profileSwitcher);
+
+        ivPhoto = (ImageView) findViewById(R.id.lastPhoto);
 
 
 
@@ -336,8 +342,28 @@ public class Custom_CameraActivity extends Activity implements  AutoFocusCallbac
                     }
         });
 
+        ivPhoto.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                /*Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(
+                        "content://media/internal/images/media"));
+                File mediaStorageDir = new File(
+                        Environment
+                                .getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
+                        "MyCameraApp");
+
+                startActivity(intent);*/
+                notifySystemWithImage(storedImageFile);
+            }
+        });
+
+
+
 
     }
+
+
+
+
 
 
 
@@ -493,7 +519,7 @@ public class Custom_CameraActivity extends Activity implements  AutoFocusCallbac
         }
     };
 
-    private static File getOutputMediaFile() {
+    private File getOutputMediaFile() {
 
         File mediaStorageDir = new File(
                 Environment
@@ -512,6 +538,7 @@ public class Custom_CameraActivity extends Activity implements  AutoFocusCallbac
         mediaFile = new File(mediaStorageDir.getPath() + File.separator
                 + "adrianfotka_" +timeStamp + ".jpg");
 
+        storedImageFile = mediaFile;
         return mediaFile;
     }
 
@@ -536,6 +563,7 @@ public class Custom_CameraActivity extends Activity implements  AutoFocusCallbac
         deviceOrientation = orient;
         //RelativeLayout.LayoutParams params = null;
         View view_instance;
+        LinearLayout myll;
         ViewGroup.LayoutParams params;
         final float scale = context.getResources().getDisplayMetrics().density;
         int pixels = (int) (70 * scale + 0.5f);
@@ -548,12 +576,17 @@ public class Custom_CameraActivity extends Activity implements  AutoFocusCallbac
                 params=view_instance.getLayoutParams();
                 params.width= pixels;
                 params.height= ViewGroup.LayoutParams.MATCH_PARENT;
+                myll = (LinearLayout) findViewById(R.id.linearLayoutDown);
+                myll.setOrientation(LinearLayout.VERTICAL);
                 view_instance.setLayoutParams(params);
+
 
                 view_instance = (View)findViewById(R.id.linearLayout);
                 params=view_instance.getLayoutParams();
                 params.width= pixels;
                 params.height= ViewGroup.LayoutParams.MATCH_PARENT;
+                myll = (LinearLayout) findViewById(R.id.linearLayout);
+                myll.setOrientation(LinearLayout.VERTICAL);
                 view_instance.setLayoutParams(params);
 
                 Log.i(TAG, "landscape orientation");
@@ -563,12 +596,17 @@ public class Custom_CameraActivity extends Activity implements  AutoFocusCallbac
                 params=view_instance.getLayoutParams();
                 params.width= ViewGroup.LayoutParams.MATCH_PARENT;
                 params.height= pixels;
+                myll = (LinearLayout) findViewById(R.id.linearLayoutDown);
+                myll.setOrientation(LinearLayout.HORIZONTAL);
                 view_instance.setLayoutParams(params);
 
                 view_instance = (View)findViewById(R.id.linearLayout);
                 params=view_instance.getLayoutParams();
                 params.width= ViewGroup.LayoutParams.MATCH_PARENT;
                 params.height= pixels;
+                myll = (LinearLayout) findViewById(R.id.linearLayout);
+                myll.setOrientation(LinearLayout.HORIZONTAL);
+
                 view_instance.setLayoutParams(params);
 
 
@@ -578,6 +616,37 @@ public class Custom_CameraActivity extends Activity implements  AutoFocusCallbac
                 setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
                 Log.i("orientation", "uncs");
         }
+    }
+
+
+    private  MediaScannerConnection conn;
+    private void notifySystemWithImage(final File imageFile) {
+
+        conn = new MediaScannerConnection(this, new MediaScannerConnection.MediaScannerConnectionClient() {
+
+            @Override
+            public void onScanCompleted(String path, Uri uri) {
+
+                try {
+                    if (uri != null) {
+                        Intent intent = new Intent(Intent.ACTION_VIEW);
+                        intent.setDataAndType(uri, "image/*");
+                        startActivity(intent);
+                    }
+                } finally {
+                    conn.disconnect();
+                    conn = null;
+                }
+            }
+
+            @Override
+            public void onMediaScannerConnected() {
+                conn.scanFile(imageFile.getAbsolutePath(), "*/*");
+
+            }
+        });
+
+        conn.connect();
     }
 
 
