@@ -19,6 +19,7 @@ import android.util.Log;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
@@ -533,23 +534,44 @@ public class Custom_CameraActivity extends Activity implements  AutoFocusCallbac
         super.onConfigurationChanged(myConfig);
         int orient = getResources().getConfiguration().orientation;
         deviceOrientation = orient;
+        //RelativeLayout.LayoutParams params = null;
+        View view_instance;
+        ViewGroup.LayoutParams params;
+        final float scale = context.getResources().getDisplayMetrics().density;
+        int pixels = (int) (70 * scale + 0.5f);
 
         switch(orient) {
 
             case Configuration.ORIENTATION_LANDSCAPE:
                 //setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+                view_instance = (View)findViewById(R.id.linearLayoutDown);
+                params=view_instance.getLayoutParams();
+                params.width= pixels;
+                params.height= ViewGroup.LayoutParams.MATCH_PARENT;
+                view_instance.setLayoutParams(params);
+
+                view_instance = (View)findViewById(R.id.linearLayout);
+                params=view_instance.getLayoutParams();
+                params.width= pixels;
+                params.height= ViewGroup.LayoutParams.MATCH_PARENT;
+                view_instance.setLayoutParams(params);
 
                 Log.i(TAG, "landscape orientation");
                 break;
             case Configuration.ORIENTATION_PORTRAIT:
+                view_instance = (View)findViewById(R.id.linearLayoutDown);
+                params=view_instance.getLayoutParams();
+                params.width= ViewGroup.LayoutParams.MATCH_PARENT;
+                params.height= pixels;
+                view_instance.setLayoutParams(params);
 
-                //setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-                //LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-                //params.gravity = RelativeLayout.ALIGN_PARENT_BOTTOM;
-                //params.height = 80;
-                //layoutDown.setLayoutParams(params);
-                //layoutDown.setGravity(Gravity.FILL);
-                //layoutDown.setOrientation(LinearLayout.HORIZONTAL);
+                view_instance = (View)findViewById(R.id.linearLayout);
+                params=view_instance.getLayoutParams();
+                params.width= ViewGroup.LayoutParams.MATCH_PARENT;
+                params.height= pixels;
+                view_instance.setLayoutParams(params);
+
+
                 Log.i(TAG, "portrait orientation");
                 break;
             default:
