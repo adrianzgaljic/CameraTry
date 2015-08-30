@@ -18,6 +18,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
+import android.view.Display;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.View;
@@ -87,7 +88,10 @@ public class Custom_CameraActivity extends Activity implements  AutoFocusCallbac
     LinearLayout layoutDown;
     ImageView ivPhoto;
     File storedImageFile;
+    FrameLayout preview;
     Activity thisActivity = this;
+
+    public final int RATIO = 8;
     //private ViewSwitcher switcher;
 
 
@@ -141,7 +145,7 @@ public class Custom_CameraActivity extends Activity implements  AutoFocusCallbac
         tvCountDown.setText("touch to start detection");
         setCameraDisplayOrientation(this, 0, mCamera);
 
-        final FrameLayout preview = (FrameLayout) findViewById(R.id.camera_preview);
+        preview = (FrameLayout) findViewById(R.id.camera_preview);
         final FrameLayout drawingSurfaceLayout = (FrameLayout) findViewById(R.id.drawing_surface);
         drawingSurface = new DrawingSurface(this);
         drawingSurface.setZOrderOnTop(true);
@@ -595,8 +599,9 @@ public class Custom_CameraActivity extends Activity implements  AutoFocusCallbac
         View view_instance;
         LinearLayout myll;
         ViewGroup.LayoutParams params;
-        final float scale = context.getResources().getDisplayMetrics().density;
-        int pixels = (int) (70 * scale + 0.5f);
+        //final float scale = context.getResources().getDisplayMetrics().density;
+        //int pixels = (int) (70 * scale + 0.5f);
+        Display display = getWindowManager().getDefaultDisplay();
 
         switch(orient) {
 
@@ -604,7 +609,8 @@ public class Custom_CameraActivity extends Activity implements  AutoFocusCallbac
                 //setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
                 view_instance = (View)findViewById(R.id.linearLayoutDown);
                 params=view_instance.getLayoutParams();
-                params.width= pixels;
+                //params.width= pixels;
+                params.height = display.getHeight()/8;
                 params.height= ViewGroup.LayoutParams.MATCH_PARENT;
                 myll = (LinearLayout) findViewById(R.id.linearLayoutDown);
                 myll.setOrientation(LinearLayout.VERTICAL);
@@ -613,11 +619,17 @@ public class Custom_CameraActivity extends Activity implements  AutoFocusCallbac
 
                 view_instance = (View)findViewById(R.id.linearLayout);
                 params=view_instance.getLayoutParams();
-                params.width= pixels;
+                //params.width= pixels;
+                params.width = display.getWidth()/8;
                 params.height= ViewGroup.LayoutParams.MATCH_PARENT;
                 myll = (LinearLayout) findViewById(R.id.linearLayout);
                 myll.setOrientation(LinearLayout.VERTICAL);
                 view_instance.setLayoutParams(params);
+
+                params = preview.getLayoutParams();
+                params.width = display.getWidth()*6/8;
+                params.height = display.getHeight();
+                preview.setLayoutParams(params);
 
                 Log.i(TAG, "landscape orientation");
                 break;
@@ -625,7 +637,7 @@ public class Custom_CameraActivity extends Activity implements  AutoFocusCallbac
                 view_instance = (View)findViewById(R.id.linearLayoutDown);
                 params=view_instance.getLayoutParams();
                 params.width= ViewGroup.LayoutParams.MATCH_PARENT;
-                params.height= pixels;
+                params.height= display.getHeight()/8;
                 myll = (LinearLayout) findViewById(R.id.linearLayoutDown);
                 myll.setOrientation(LinearLayout.HORIZONTAL);
                 view_instance.setLayoutParams(params);
@@ -633,11 +645,15 @@ public class Custom_CameraActivity extends Activity implements  AutoFocusCallbac
                 view_instance = (View)findViewById(R.id.linearLayout);
                 params=view_instance.getLayoutParams();
                 params.width= ViewGroup.LayoutParams.MATCH_PARENT;
-                params.height= pixels;
+                params.height= display.getHeight()/8;
                 myll = (LinearLayout) findViewById(R.id.linearLayout);
                 myll.setOrientation(LinearLayout.HORIZONTAL);
-
                 view_instance.setLayoutParams(params);
+
+                params = preview.getLayoutParams();
+                params.width = display.getWidth();
+                params.height = display.getHeight()*6/8;
+                preview.setLayoutParams(params);
 
 
                 Log.i(TAG, "portrait orientation");
