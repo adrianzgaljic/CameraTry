@@ -87,6 +87,7 @@ public class Custom_CameraActivity extends Activity implements  AutoFocusCallbac
     LinearLayout layoutDown;
     ImageView ivPhoto;
     File storedImageFile;
+    Activity thisActivity = this;
     //private ViewSwitcher switcher;
 
 
@@ -133,19 +134,20 @@ public class Custom_CameraActivity extends Activity implements  AutoFocusCallbac
         soundIdShutter = soundPool.load(context, R.raw.shutter_sound, 1);
 
         lastPhoto = (ImageView) findViewById(R.id.lastPhoto);
-        mCamera = open(cameraOrientation);
-
+        //mCamera = open(cameraOrientation);
+        mCamera = open(CameraInfo.CAMERA_FACING_BACK);
         tvCountDown = (TextView) findViewById(R.id.textView);
         tvCountDown.setTextSize(20);
         tvCountDown.setText("touch to start detection");
         setCameraDisplayOrientation(this, 0, mCamera);
 
-        FrameLayout preview = (FrameLayout) findViewById(R.id.camera_preview);
-        FrameLayout drawingSurfaceLayout = (FrameLayout) findViewById(R.id.drawing_surface);
+        final FrameLayout preview = (FrameLayout) findViewById(R.id.camera_preview);
+        final FrameLayout drawingSurfaceLayout = (FrameLayout) findViewById(R.id.drawing_surface);
         drawingSurface = new DrawingSurface(this);
         drawingSurface.setZOrderOnTop(true);
         SurfaceHolder sfhTrackHolder = drawingSurface.getHolder();
         sfhTrackHolder.setFormat(PixelFormat.TRANSPARENT);
+        drawingSurfaceLayout.removeAllViews();
         drawingSurfaceLayout.addView(drawingSurface);
 
         mCameraPreview = new CameraPreview(this,  mCamera,drawingSurface);
@@ -318,17 +320,39 @@ public class Custom_CameraActivity extends Activity implements  AutoFocusCallbac
         cameraChangeButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mCamera.stopPreview();
-                mCamera.release();
+
                 if(cameraOrientation == Camera.CameraInfo.CAMERA_FACING_BACK){
                     cameraOrientation = Camera.CameraInfo.CAMERA_FACING_FRONT;
                 }
                 else {
                     cameraOrientation = Camera.CameraInfo.CAMERA_FACING_BACK;
                 }
-                mCamera = Camera.open(cameraOrientation);
-               //setCameraDisplayOrientation(thisClass,0,mCamera);
-                mCamera.startPreview();
+                if (mCamera != null) {
+                    mCamera.stopPreview();
+                    mCamera.setPreviewCallback(null);
+                    mCamera.release();
+                    mCamera = null;
+                    mCameraPreview.getHolder().removeCallback(mCameraPreview);
+                    preview.removeAllViews();
+                    mCamera = Camera.open(cameraOrientation);
+                    drawingSurface = null;
+                    drawingSurface = new DrawingSurface(context);
+                    drawingSurface.setZOrderOnTop(true);
+
+                    SurfaceHolder sfhTrackHolder2 = drawingSurface.getHolder();
+                    sfhTrackHolder2.setFormat(PixelFormat.TRANSPARENT);
+
+                    drawingSurfaceLayout.removeAllViews();
+                    drawingSurfaceLayout.addView(drawingSurface);
+
+                    mCameraPreview = new CameraPreview(context,  mCamera, drawingSurface);
+                    preview.addView(mCameraPreview);
+                    setCameraDisplayOrientation(thisActivity, 0, mCamera);
+
+                }
+                //mCameraPreview = new CameraPreview(context,  mCamera,drawingSurface);
+                //preview.addView(mCameraPreview);
+
 
             }
         });
@@ -344,6 +368,7 @@ public class Custom_CameraActivity extends Activity implements  AutoFocusCallbac
 
         ivPhoto.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
+                notifySystemWithImage(new File(Environment.getExternalStorageDirectory().toString()));
                 /*Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(
                         "content://media/internal/images/media"));
                 File mediaStorageDir = new File(
@@ -351,8 +376,13 @@ public class Custom_CameraActivity extends Activity implements  AutoFocusCallbac
                                 .getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
                         "MyCameraApp");
 
-                startActivity(intent);*/
+                startActivity(intent);
                 notifySystemWithImage(storedImageFile);
+                Intent intent = new Intent();
+                intent.setAction(Intent.ACTION_VIEW);
+                intent.setDataAndType(Uri.parse("/storage/emulated/0/Pictures/MyCameraApp/adrianfotka_20150829_053445.jpg"), "image/*");
+                startActivity(intent); */
+                //startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("content://media/external/images/media/MyCameraApp/adrianfotka_20150829_053445.jpg")));
             }
         });
 
@@ -641,16 +671,15 @@ public class Custom_CameraActivity extends Activity implements  AutoFocusCallbac
 
             @Override
             public void onMediaScannerConnected() {
-                conn.scanFile(imageFile.getAbsolutePath(), "*/*");
-
+                Log.i(TAG,"imFile="+imageFile);
+                File imageFile2 = new File("/storage/emulated/0/Pictures/MyCameraApp/adrianfotka_20150829_053445.jpg");
+                conn.scanFile(imageFile2.getAbsolutePath(), "*/*");
+               // conn.scanFile(imageFile.getAbsolutePath());
             }
         });
 
         conn.connect();
     }
-
-
-
 
 
 

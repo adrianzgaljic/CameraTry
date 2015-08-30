@@ -55,8 +55,8 @@ public class DrawingSurface extends SurfaceView implements SurfaceHolder.Callbac
     @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
 
-            //Canvas canvas = holder.lockCanvas();
-            //holder.unlockCanvasAndPost(canvas);
+            Canvas canvas = holder.lockCanvas();
+            holder.unlockCanvasAndPost(canvas);
 
 
 

@@ -52,7 +52,7 @@ public class CameraPreview extends SurfaceView implements
         listOfFaces = new ArrayList<Rect>();
         assistantListOfFaces = new ArrayList<Rect>();
 
-
+        Log.i(TAG,"drawing surface u camera preview "+drawSurface);
         // This call is necessary, or else the
         // draw method will not be called.
 
@@ -61,7 +61,7 @@ public class CameraPreview extends SurfaceView implements
             faceDetector = ac.faceDetector;
             Log.e(TAG, "face detector: "+faceDetector.toString());
         } catch (Exception e){
-            Log.e(TAG,"GRESKA: "+e.toString());
+            Log.e(TAG,"GRESKA FACEDETECTOR: "+e.toString());
         }
 
 
@@ -84,9 +84,12 @@ public class CameraPreview extends SurfaceView implements
 
     @Override
     public void surfaceDestroyed(SurfaceHolder surfaceHolder) {
-        mCamera.stopPreview();
-        mCamera.setPreviewCallback(null);
-        mCamera.release();
+
+            mCamera.stopPreview();
+            mCamera.setPreviewCallback(null);
+            mCamera.release();
+
+
     }
 
 
@@ -124,8 +127,9 @@ public class CameraPreview extends SurfaceView implements
                                 Utils.bitmapToMat(b, mat);
                                 // Log.e(TAG,"mat= "+mat.toString());
                                 faceDetections = new MatOfRect();
-                                faceDetector.empty();
+
                                 try {
+                                    faceDetector.empty();
                                     faceDetector.detectMultiScale(mat, faceDetections);
                                 } catch (Exception e){
                                     Log.i(TAG,"facedetection "+e);
@@ -133,14 +137,18 @@ public class CameraPreview extends SurfaceView implements
 
                                 // Log.e(TAG,faceDetector.toString());
 
-
+                                Log.i(TAG,"drawsurface="+drawSurface);
                                 if (faceDetections.toArray().length > 0 && ac.picturesTaken < numberOfPictures && !ac.locked) {
 
+                                    try{
+                                        drawSurface.playSound();
+                                        listOfFaces.clear();
+                                        drawSurface.clearCanvas();
 
-                                    drawSurface.playSound();
-                                    listOfFaces.clear();
-                                    drawSurface.clearCanvas();
 
+                                    } catch (Exception e){
+                                        Log.i(TAG,"POKUSAJ NEUSPIO "+e);
+                                    }
                                     android.graphics.Rect focusRect = null;
 
                                     for (Rect rect : faceDetections.toArray()) {
@@ -152,8 +160,15 @@ public class CameraPreview extends SurfaceView implements
                                         //addToListOfFaces(rect);
                                     }
 
-                                    faceDetections.empty();
-                                    ac.takePicture(focusRect);
+                                    try{
+                                        faceDetections.empty();
+                                        ac.takePicture(focusRect);
+
+
+                                    } catch (Exception e){
+                                        Log.i(TAG,"POKUSAJ NEUSPIO 2 "+e);
+                                    }
+
 
 
                                     for (Rect rect : listOfFaces) {
@@ -164,7 +179,18 @@ public class CameraPreview extends SurfaceView implements
 
 
                                 } else {
-                                    drawSurface.clearCanvas();
+                                    Log.i(TAG,"DRAW SURFACE JEBEMU"+drawSurface);
+
+                                    try{
+
+                                        drawSurface.clearCanvas();
+
+
+                                    } catch (Exception e){
+                                        Log.i(TAG,"zapelo "+e);
+                                    }
+
+
                                 }
 
                                 if (ac.picturesTaken >= numberOfPictures) {
@@ -174,7 +200,7 @@ public class CameraPreview extends SurfaceView implements
                                 }
 
                             } catch (Exception e) {
-                                Log.e(TAG, "greska: " + e.toString());
+                                Log.e(TAG, "greska je: " + e.toString());
                             }
                         } else {
                             ac.tvCountDown.setTextSize(20);
