@@ -610,7 +610,7 @@ public class Custom_CameraActivity extends Activity implements  AutoFocusCallbac
                 view_instance = (View)findViewById(R.id.linearLayoutDown);
                 params=view_instance.getLayoutParams();
                 //params.width= pixels;
-                params.height = display.getHeight()/8;
+                params.width = display.getWidth()/8;
                 params.height= ViewGroup.LayoutParams.MATCH_PARENT;
                 myll = (LinearLayout) findViewById(R.id.linearLayoutDown);
                 myll.setOrientation(LinearLayout.VERTICAL);
