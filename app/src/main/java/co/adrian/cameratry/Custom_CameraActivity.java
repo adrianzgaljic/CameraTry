@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.graphics.PixelFormat;
+import android.graphics.drawable.AnimationDrawable;
 import android.hardware.Camera;
 import android.media.AudioManager;
 import android.media.MediaScannerConnection;
@@ -85,6 +86,7 @@ public class Custom_CameraActivity extends Activity implements  AutoFocusCallbac
     Button imagesNumberButton;
     Button soundButton;
     Button cameraChangeButton;
+    Button btnStartDetection;
     LinearLayout layoutDown;
     ImageView ivPhoto;
     File storedImageFile;
@@ -162,11 +164,26 @@ public class Custom_CameraActivity extends Activity implements  AutoFocusCallbac
         imagesNumberButton = (Button) findViewById(R.id.button_number_of_images);
         soundButton = (Button) findViewById(R.id.button_sound);
         cameraChangeButton = (Button) findViewById(R.id.button_change_camera);
+        btnStartDetection = (Button) findViewById(R.id.button);
 
         layoutDown = (LinearLayout)findViewById(R.id.linearLayoutDown);
         //switcher = (ViewSwitcher) findViewById(R.id.profileSwitcher);
 
         ivPhoto = (ImageView) findViewById(R.id.lastPhoto);
+
+        btnStartDetection.setOnClickListener(new View.OnClickListener() {
+
+
+            @Override
+            public void onClick(View arg0) {
+                btnStartDetection.setBackgroundResource(R.drawable.animation);
+                AnimationDrawable b1Amin = (AnimationDrawable) btnStartDetection.getBackground();
+                b1Amin.start();
+
+            }
+        });
+
+
 
 
 
@@ -407,7 +424,7 @@ public class Custom_CameraActivity extends Activity implements  AutoFocusCallbac
         locked = true;
 
         Camera.Parameters cameraParameters = mCamera.getParameters();
-        ArrayList<Camera.Area> focusAreas = new ArrayList<>();
+        ArrayList<Camera.Area> focusAreas = new ArrayList<Camera.Area>();
         focusAreas.add(new Area(focusArea, 1000));
 
         cameraParameters.setFocusMode(FOCUS_MODE_AUTO);
