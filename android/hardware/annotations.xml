@@ -1,0 +1,5 @@
+<root>
+  <item name='android.hardware.Camera.Parameters FLASH_MODE_ON'>
+    <annotation name='org.jetbrains.annotations.NotNull' />
+  </item>
+</root>
