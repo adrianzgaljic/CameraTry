@@ -17,25 +17,23 @@ import org.opencv.objdetect.CascadeClassifier;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
+
 
 public class CameraPreview extends SurfaceView implements
         SurfaceHolder.Callback{
+
+    public static final String TAG = "logIspis";
+
     private SurfaceHolder mSurfaceHolder;
     private Camera mCamera;
-    public static final String TAG = "logIspis";
-    Mat mat;
-    Paint textPaint = new Paint();
-    CascadeClassifier faceDetector = null;
-    MatOfRect faceDetections;
-    Custom_CameraActivity ac = null;
-    DrawingSurface drawSurface;
-    List<Rect> listOfFaces;
-    List<Rect> assistantListOfFaces;
+    private Paint textPaint = new Paint();
+    private CascadeClassifier faceDetector = null;
 
+    private Custom_CameraActivity ac = null;
+    private DrawingSurface drawSurface;
+    private List<Rect> listOfFaces;
+    private List<Rect> assistantListOfFaces;
 
-
-    public Random random;
 
     // Constructor that obtains context and camera
     @SuppressWarnings("deprecation")
@@ -48,13 +46,12 @@ public class CameraPreview extends SurfaceView implements
         this.drawSurface = drawSurface;
         textPaint.setARGB(255, 200, 0, 0);
         textPaint.setTextSize(60);
-        random = new Random();
+
         listOfFaces = new ArrayList<Rect>();
         assistantListOfFaces = new ArrayList<Rect>();
 
         Log.i(TAG,"drawing surface u camera preview "+drawSurface);
-        // This call is necessary, or else the
-        // draw method will not be called.
+
 
         try{
             ac = (Custom_CameraActivity) context;
@@ -95,6 +92,8 @@ public class CameraPreview extends SurfaceView implements
 
 
 
+
+
     @Override
     public void surfaceChanged(SurfaceHolder surfaceHolder, int format,
             int width, int height) {
@@ -112,6 +111,8 @@ public class CameraPreview extends SurfaceView implements
                         if (ac.detectionStarted) {
                             Bitmap b;
                             int numberOfPictures = ac.numberOfImages;
+                            Mat mat;
+                            MatOfRect faceDetections;
 
 
                             try {
@@ -122,10 +123,8 @@ public class CameraPreview extends SurfaceView implements
 
 
                                 b = Bitmap.createBitmap(rgb, width, height, Bitmap.Config.ARGB_8888);
-                                // Log.e(TAG,"bit= "+b.toString());
                                 mat = new Mat(b.getWidth(), b.getHeight(), CvType.CV_8UC1);
                                 Utils.bitmapToMat(b, mat);
-                                // Log.e(TAG,"mat= "+mat.toString());
                                 faceDetections = new MatOfRect();
 
                                 try {

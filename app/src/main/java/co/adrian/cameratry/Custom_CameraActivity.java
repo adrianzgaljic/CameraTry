@@ -348,6 +348,7 @@ public class Custom_CameraActivity extends Activity implements  AutoFocusCallbac
                 else {
                     cameraOrientation = Camera.CameraInfo.CAMERA_FACING_BACK;
                 }
+
                 if (mCamera != null) {
                     mCamera.stopPreview();
                     mCamera.setPreviewCallback(null);
@@ -373,6 +374,7 @@ public class Custom_CameraActivity extends Activity implements  AutoFocusCallbac
                 }
                 //mCameraPreview = new CameraPreview(context,  mCamera,drawingSurface);
                 //preview.addView(mCameraPreview);
+
 
 
             }
