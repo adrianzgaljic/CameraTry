@@ -107,6 +107,7 @@ public class CameraPreview extends SurfaceView implements
 
                 @Override
                 public void onPreviewFrame(byte[] data, Camera camera) {
+
                     if (ac.isOver) {
                         if (ac.detectionStarted) {
                             Bitmap b;
@@ -236,7 +237,7 @@ public class CameraPreview extends SurfaceView implements
 
 
         } catch (Exception e) {
-            // intentionally left blank for a test
+            Log.i(TAG,"GRESKA KOJA SE TRAZI");
         }
 
     }

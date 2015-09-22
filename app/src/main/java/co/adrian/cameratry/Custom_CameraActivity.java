@@ -141,7 +141,7 @@ public class Custom_CameraActivity extends Activity implements  AutoFocusCallbac
 
         lastPhoto = (ImageView) findViewById(R.id.lastPhoto);
         //mCamera = open(cameraOrientation);
-        mCamera = open(CameraInfo.CAMERA_FACING_BACK);
+        mCamera = open(cameraOrientation);
         tvCountDown = (TextView) findViewById(R.id.textView);
         tvCountDown.setTextSize(20);
         tvCountDown.setText("touch to start detection");
@@ -170,6 +170,76 @@ public class Custom_CameraActivity extends Activity implements  AutoFocusCallbac
         //switcher = (ViewSwitcher) findViewById(R.id.profileSwitcher);
 
         ivPhoto = (ImageView) findViewById(R.id.lastPhoto);
+
+        int orient = getResources().getConfiguration().orientation;
+        deviceOrientation = orient;
+        //RelativeLayout.LayoutParams params = null;
+        View view_instance;
+        LinearLayout myll;
+        ViewGroup.LayoutParams params;
+        //final float scale = context.getResources().getDisplayMetrics().density;
+        //int pixels = (int) (70 * scale + 0.5f);
+        Display display = getWindowManager().getDefaultDisplay();
+
+        switch(orient) {
+
+            case Configuration.ORIENTATION_LANDSCAPE:
+                //setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+                view_instance = (View)findViewById(R.id.linearLayoutDown);
+                params=view_instance.getLayoutParams();
+                //params.width= pixels;
+                params.width = display.getWidth()/8;
+                params.height= ViewGroup.LayoutParams.MATCH_PARENT;
+                myll = (LinearLayout) findViewById(R.id.linearLayoutDown);
+                myll.setOrientation(LinearLayout.VERTICAL);
+                view_instance.setLayoutParams(params);
+
+
+                view_instance = (View)findViewById(R.id.linearLayout);
+                params=view_instance.getLayoutParams();
+                //params.width= pixels;
+                params.width = display.getWidth()/8;
+                params.height= ViewGroup.LayoutParams.MATCH_PARENT;
+                myll = (LinearLayout) findViewById(R.id.linearLayout);
+                myll.setOrientation(LinearLayout.VERTICAL);
+                view_instance.setLayoutParams(params);
+
+                params = preview.getLayoutParams();
+                params.width = display.getWidth()*6/8;
+                params.height = display.getHeight();
+                preview.setLayoutParams(params);
+
+                Log.i(TAG, "landscape orientation");
+                break;
+            case Configuration.ORIENTATION_PORTRAIT:
+                view_instance = (View)findViewById(R.id.linearLayoutDown);
+                params=view_instance.getLayoutParams();
+                params.width= ViewGroup.LayoutParams.MATCH_PARENT;
+                params.height= display.getHeight()/8;
+                myll = (LinearLayout) findViewById(R.id.linearLayoutDown);
+                myll.setOrientation(LinearLayout.HORIZONTAL);
+                view_instance.setLayoutParams(params);
+
+                view_instance = (View)findViewById(R.id.linearLayout);
+                params=view_instance.getLayoutParams();
+                params.width= ViewGroup.LayoutParams.MATCH_PARENT;
+                params.height= display.getHeight()/8;
+                myll = (LinearLayout) findViewById(R.id.linearLayout);
+                myll.setOrientation(LinearLayout.HORIZONTAL);
+                view_instance.setLayoutParams(params);
+
+                params = preview.getLayoutParams();
+                params.width = display.getWidth();
+                params.height = display.getHeight()*6/8;
+                preview.setLayoutParams(params);
+
+
+                Log.i(TAG, "portrait orientation");
+                break;
+            default:
+                setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
+                Log.i("orientation", "uncs");
+        }
 
         btnStartDetection.setOnClickListener(new View.OnClickListener() {
 
@@ -348,32 +418,9 @@ public class Custom_CameraActivity extends Activity implements  AutoFocusCallbac
                 else {
                     cameraOrientation = Camera.CameraInfo.CAMERA_FACING_BACK;
                 }
+                onCreate(new Bundle());
 
-                if (mCamera != null) {
-                    mCamera.stopPreview();
-                    mCamera.setPreviewCallback(null);
-                    mCamera.release();
-                    mCamera = null;
-                    mCameraPreview.getHolder().removeCallback(mCameraPreview);
-                    preview.removeAllViews();
-                    mCamera = Camera.open(cameraOrientation);
-                    drawingSurface = null;
-                    drawingSurface = new DrawingSurface(context);
-                    drawingSurface.setZOrderOnTop(true);
 
-                    SurfaceHolder sfhTrackHolder2 = drawingSurface.getHolder();
-                    sfhTrackHolder2.setFormat(PixelFormat.TRANSPARENT);
-
-                    drawingSurfaceLayout.removeAllViews();
-                    drawingSurfaceLayout.addView(drawingSurface);
-
-                    mCameraPreview = new CameraPreview(context,  mCamera, drawingSurface);
-                    preview.addView(mCameraPreview);
-                    setCameraDisplayOrientation(thisActivity, 0, mCamera);
-
-                }
-                //mCameraPreview = new CameraPreview(context,  mCamera,drawingSurface);
-                //preview.addView(mCameraPreview);
 
 
 
@@ -422,21 +469,37 @@ public class Custom_CameraActivity extends Activity implements  AutoFocusCallbac
 
 
     public void takePicture(android.graphics.Rect focusArea) throws InterruptedException {
+        Log.i(TAG,"ulazim u takePicture metodu");
 
         locked = true;
 
         Camera.Parameters cameraParameters = mCamera.getParameters();
         ArrayList<Camera.Area> focusAreas = new ArrayList<Camera.Area>();
         focusAreas.add(new Area(focusArea, 1000));
+        Log.i(TAG, "prolaz 1");
+        try{
+/*
+            if (cameraParameters.getMaxNumFocusAreas() > 0){
+                cameraParameters.setFocusMode(FOCUS_MODE_AUTO);
+                cameraParameters.setFocusAreas(focusAreas);
+            }
 
-        cameraParameters.setFocusMode(FOCUS_MODE_AUTO);
-        cameraParameters.setFocusAreas(focusAreas);
-        cameraParameters.setFlashMode(flash);
-        mCamera.setParameters(cameraParameters);
+            if (cameraParameters.getFlashMode() != null){
+                cameraParameters.setFlashMode(flash);
+            }
 
+            mCamera.setParameters(cameraParameters);
+            */
+        }
+        catch (Exception e){
+            Log.i(TAG,"prolaz neuspio "+e);
+        }
+        Log.i(TAG, "prolaz 2");
 
         tvCountDown.setTextSize(100);
+        Log.i(TAG, "prolaz 3");
         if (timerTime != 0) {
+            Log.i(TAG,"prolaz 4");
             tvCountDown.setText(Integer.toString(timerTime));
             Thread th = new Thread(new Runnable() {
                 private long startTime = System.currentTimeMillis();
@@ -461,6 +524,7 @@ public class Custom_CameraActivity extends Activity implements  AutoFocusCallbac
                             }
 
                         });
+                        Log.i(TAG, "prolaz 4");
                         if (isOver) {
                             mCamera.autoFocus(thisClass);
                             mCamera.takePicture(null, null, mPicture.get());
@@ -481,11 +545,14 @@ public class Custom_CameraActivity extends Activity implements  AutoFocusCallbac
             });
             th.start();
         } else {
+            Log.i(TAG,"prolaz 5");
             mCamera.autoFocus(thisClass);
             mCamera.takePicture(null, null, mPicture.get());
             picturesTaken ++;
+            Log.i(TAG,"prolaz 6");
 
         }
+        Log.i(TAG,"izlazim iz ulazim u takePicture metodu");
 
     }
 
