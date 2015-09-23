@@ -18,6 +18,7 @@ import org.opencv.objdetect.CascadeClassifier;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 
 public class CameraPreview extends SurfaceView implements
@@ -38,6 +39,7 @@ public class CameraPreview extends SurfaceView implements
     Bitmap b;
     Mat mat;
     MatOfRect faceDetections;
+    ProcessPreviewDataTask processingTask;
 
 
     // Constructor that obtains context and camera
@@ -118,6 +120,11 @@ public class CameraPreview extends SurfaceView implements
                 @Override
                 public void onPreviewFrame(byte[] data, Camera camera) {
 
+                    Set<Thread> threadSet = Thread.getAllStackTraces().keySet();
+                    Log.i(TAG,"DRETVE ="+threadSet.size());
+
+
+
 
                     if (ac.isOver && !processInProgress) {
                         if (ac.detectionStarted) {
@@ -139,7 +146,8 @@ public class CameraPreview extends SurfaceView implements
                                 faceDetections = new MatOfRect();
                                 */
                           //      if (!processInProgress){
-                                    new ProcessPreviewDataTask(camera,data,mat,faceDetections,drawSurface,b,numberOfPictures).execute();
+                                    processingTask = new ProcessPreviewDataTask(camera,data,mat,faceDetections,drawSurface,b,numberOfPictures);
+                                    processingTask.execute();
                            //     }
 
 
@@ -221,6 +229,8 @@ public class CameraPreview extends SurfaceView implements
                             ac.tvCountDown.setTextSize(20);
                             ac.tvCountDown.setText("touch to start detection");
                             ac.btnStartDetection.setBackgroundResource(R.drawable.start_shadow);
+
+
                         }
                     }
 
@@ -305,11 +315,12 @@ public class CameraPreview extends SurfaceView implements
             int height = camera.getParameters().getPreviewSize().height;
             int[] rgb = decodeYUV420SP(data, width, height);
 
-
+            System.gc();
             b = Bitmap.createBitmap(rgb, width, height, Bitmap.Config.ARGB_8888);
             mat = new Mat(b.getWidth(), b.getHeight(), CvType.CV_8UC1);
             Utils.bitmapToMat(b, mat);
             faceDetections = new MatOfRect();
+
 
 
             try {
@@ -397,6 +408,8 @@ public class CameraPreview extends SurfaceView implements
                 ac.detectionStarted = false;
 
             }
+            b.recycle();
+            b=null;
             processInProgress = false;
             // set pixels once processing is done
 
