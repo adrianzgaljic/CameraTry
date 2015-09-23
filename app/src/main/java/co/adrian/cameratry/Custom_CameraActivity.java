@@ -249,6 +249,7 @@ public class Custom_CameraActivity extends Activity implements  AutoFocusCallbac
                 btnStartDetection.setBackgroundResource(R.drawable.animation);
                 AnimationDrawable b1Amin = (AnimationDrawable) btnStartDetection.getBackground();
                 b1Amin.start();
+                detectionStarted = true;
 
             }
         });
