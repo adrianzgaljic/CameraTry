@@ -479,7 +479,7 @@ public class Custom_CameraActivity extends Activity implements  AutoFocusCallbac
         focusAreas.add(new Area(focusArea, 1000));
         Log.i(TAG, "prolaz 1");
         try{
-/*
+
             if (cameraParameters.getMaxNumFocusAreas() > 0){
                 cameraParameters.setFocusMode(FOCUS_MODE_AUTO);
                 cameraParameters.setFocusAreas(focusAreas);
@@ -490,7 +490,7 @@ public class Custom_CameraActivity extends Activity implements  AutoFocusCallbac
             }
 
             mCamera.setParameters(cameraParameters);
-            */
+
         }
         catch (Exception e){
             Log.i(TAG,"prolaz neuspio "+e);

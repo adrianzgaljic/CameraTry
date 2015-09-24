@@ -2,7 +2,10 @@ package co.adrian.cameratry;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.ImageFormat;
 import android.graphics.Paint;
+import android.graphics.YuvImage;
 import android.hardware.Camera;
 import android.os.AsyncTask;
 import android.util.Log;
@@ -14,8 +17,10 @@ import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfRect;
 import org.opencv.core.Rect;
+import org.opencv.core.Size;
 import org.opencv.objdetect.CascadeClassifier;
 
+import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -57,7 +62,6 @@ public class CameraPreview extends SurfaceView implements
         listOfFaces = new ArrayList<Rect>();
         assistantListOfFaces = new ArrayList<Rect>();
 
-        Log.i(TAG,"drawing surface u camera preview "+drawSurface);
 
 
         try{
@@ -119,121 +123,47 @@ public class CameraPreview extends SurfaceView implements
 
                 @Override
                 public void onPreviewFrame(byte[] data, Camera camera) {
+                    try {
 
-                    Set<Thread> threadSet = Thread.getAllStackTraces().keySet();
-                    Log.i(TAG,"DRETVE ="+threadSet.size());
+                        Set<Thread> threadSet = Thread.getAllStackTraces().keySet();
+                        Runtime info = Runtime.getRuntime();
+                        long freeSize = info.freeMemory();
+                        long totalSize = info.totalMemory();
+                        long usedSize = totalSize - freeSize;
 
-
-
-
-                    if (ac.isOver && !processInProgress) {
-                        if (ac.detectionStarted) {
-
-                            int numberOfPictures = ac.numberOfImages;
-
+                        //Log.i(TAG,"free ="+freeSize);
+                        Log.i(TAG, "free =" + Runtime.getRuntime().freeMemory());
 
 
-                            try {
-/*
-                                int width = camera.getParameters().getPreviewSize().width;
-                                int height = camera.getParameters().getPreviewSize().height;
-                                int[] rgb = decodeYUV420SP(data, width, height);
+                        if (ac.isOver && !processInProgress) {
+                            if (ac.detectionStarted) {
+
+                                int numberOfPictures = ac.numberOfImages;
 
 
-                                b = Bitmap.createBitmap(rgb, width, height, Bitmap.Config.ARGB_8888);
-                                mat = new Mat(b.getWidth(), b.getHeight(), CvType.CV_8UC1);
-                                Utils.bitmapToMat(b, mat);
-                                faceDetections = new MatOfRect();
-                                */
-                          //      if (!processInProgress){
-                                    processingTask = new ProcessPreviewDataTask(camera,data,mat,faceDetections,drawSurface,b,numberOfPictures);
-                                    processingTask.execute();
-                           //     }
-
-
-/*
                                 try {
-                                    faceDetector.empty();
-                                    faceDetector.detectMultiScale(mat, faceDetections);
+
+                                    //      if (!processInProgress){
+                                    processingTask = new ProcessPreviewDataTask(camera, data, mat, faceDetections, drawSurface, b, numberOfPictures);
+                                    processingTask.execute();
+                                    //     }
+
+
                                 } catch (Exception e) {
-                                    Log.i(TAG, "facedetection " + e);
+                                    Log.e(TAG, "greska je: " + e.toString());
                                 }
-
-                                // Log.e(TAG,faceDetector.toString());
-
-                                Log.i(TAG, "drawsurface=" + drawSurface);
-                                if (faceDetections.toArray().length > 0 && ac.picturesTaken < numberOfPictures && !ac.locked) {
-
-                                    try {
-                                        drawSurface.playSound();
-                                        listOfFaces.clear();
-                                        drawSurface.clearCanvas();
+                            } else {
+                                ac.tvCountDown.setTextSize(20);
+                                ac.tvCountDown.setText("touch to start detection");
+                                ac.btnStartDetection.setBackgroundResource(R.drawable.start_shadow);
 
 
-                                    } catch (Exception e) {
-                                        Log.i(TAG, "POKUSAJ NEUSPIO " + e);
-                                    }
-                                    android.graphics.Rect focusRect = null;
-
-                                    for (Rect rect : faceDetections.toArray()) {
-
-                                        Log.v(TAG, rect.toString());
-                                        drawSurface.drawFaces(rect, b.getWidth(), b.getHeight());
-                                        android.graphics.Rect rectan = new android.graphics.Rect(rect.x, rect.y, rect.x + rect.width, rect.y + rect.height);
-                                        focusRect = rectan;
-                                        //addToListOfFaces(rect);
-                                    }
-
-                                    try {
-                                        faceDetections.empty();
-                                        ac.takePicture(focusRect);
-
-
-                                    } catch (Exception e) {
-                                        Log.i(TAG, "POKUSAJ NEUSPIO 2 " + e);
-                                    }
-
-
-                                    for (Rect rect : listOfFaces) {
-                                        drawSurface.drawFaces(rect, b.getWidth(), b.getHeight());
-                                        android.graphics.Rect rectan = new android.graphics.Rect(rect.x, rect.y, rect.x + rect.width, rect.y + rect.height);
-                                        ac.takePicture(rectan);
-                                    }
-
-
-                                } else {
-                                    Log.i(TAG, "DRAW SURFACE JEBEMU" + drawSurface);
-
-                                    try {
-
-                                        drawSurface.clearCanvas();
-
-
-                                    } catch (Exception e) {
-                                        Log.i(TAG, "zapelo " + e);
-                                    }
-
-
-                                }
-
-                                if (ac.picturesTaken >= numberOfPictures) {
-                                    ac.picturesTaken = 0;
-                                    ac.detectionStarted = false;
-
-                                }
-*/
-                            } catch (Exception e) {
-                                Log.e(TAG, "greska je: " + e.toString());
                             }
-                        } else {
-                            ac.tvCountDown.setTextSize(20);
-                            ac.tvCountDown.setText("touch to start detection");
-                            ac.btnStartDetection.setBackgroundResource(R.drawable.start_shadow);
-
-
                         }
-                    }
 
+                    } catch(OutOfMemoryError e){
+                        Log.e(TAG,"OutOfMemoryError occured during image processing");
+                    }
                 }
 
 
@@ -255,38 +185,6 @@ public class CameraPreview extends SurfaceView implements
 
 
 
-    public int[] decodeYUV420SP( byte[] yuv420sp, int width, int height) {
-
-        final int frameSize = width * height;
-
-        int rgb[]=new int[width*height];
-        for (int j = 0, yp = 0; j < height; j++) {
-            int uvp = frameSize + (j >> 1) * width, u = 0, v = 0;
-            for (int i = 0; i < width; i++, yp++) {
-                int y = (0xff & ((int) yuv420sp[yp])) - 16;
-                if (y < 0) y = 0;
-                if ((i & 1) == 0) {
-                    v = (0xff & yuv420sp[uvp++]) - 128;
-                    u = (0xff & yuv420sp[uvp++]) - 128;
-                }
-
-                int y1192 = 1192 * y;
-                int r = (y1192 + 1634 * v);
-                int g = (y1192 - 833 * v - 400 * u);
-                int b = (y1192 + 2066 * u);
-
-                if (r < 0) r = 0; else if (r > 262143) r = 262143;
-                if (g < 0) g = 0; else if (g > 262143) g = 262143;
-                if (b < 0) b = 0; else if (b > 262143) b = 262143;
-
-                rgb[yp] = 0xff000000 | ((r << 6) & 0xff0000) | ((g >> 2) &
-                        0xff00) | ((b >> 10) & 0xff);
-
-
-            }
-        }
-        return rgb;
-    }
 
         public  class ProcessPreviewDataTask
             extends AsyncTask<Void, Void, Boolean> {
@@ -311,12 +209,19 @@ public class CameraPreview extends SurfaceView implements
         @Override
         protected Boolean doInBackground(Void... datas) {
             processInProgress = true;
-            int width = camera.getParameters().getPreviewSize().width;
-            int height = camera.getParameters().getPreviewSize().height;
-            int[] rgb = decodeYUV420SP(data, width, height);
 
-            System.gc();
-            b = Bitmap.createBitmap(rgb, width, height, Bitmap.Config.ARGB_8888);
+            Camera.Parameters parameters = camera.getParameters();
+            int width = parameters.getPreviewSize().width;
+            int height = parameters.getPreviewSize().height;
+
+            YuvImage yuv = new YuvImage(data, parameters.getPreviewFormat(), width, height, null);
+
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            yuv.compressToJpeg(new android.graphics.Rect(0, 0, width, height), 50, out);
+
+            byte[] bytes = out.toByteArray();
+            b = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+
             mat = new Mat(b.getWidth(), b.getHeight(), CvType.CV_8UC1);
             Utils.bitmapToMat(b, mat);
             faceDetections = new MatOfRect();
@@ -326,6 +231,7 @@ public class CameraPreview extends SurfaceView implements
             try {
                 faceDetector.empty();
                 faceDetector.detectMultiScale(mat, faceDetections);
+                faceDetector.detectMultiScale(mat, faceDetections,1.1,4,1,new Size(50,50),new Size(500,500));
             } catch (Exception e) {
                 Log.i(TAG, "facedetection " + e);
             }
@@ -409,6 +315,7 @@ public class CameraPreview extends SurfaceView implements
 
             }
             b.recycle();
+
             b=null;
             processInProgress = false;
             // set pixels once processing is done
@@ -417,38 +324,6 @@ public class CameraPreview extends SurfaceView implements
 
         }
 
-        public int[] decodeYUV420SP( byte[] yuv420sp, int width, int height) {
-
-            final int frameSize = width * height;
-
-            int rgb[]=new int[width*height];
-            for (int j = 0, yp = 0; j < height; j++) {
-                int uvp = frameSize + (j >> 1) * width, u = 0, v = 0;
-                for (int i = 0; i < width; i++, yp++) {
-                    int y = (0xff & ((int) yuv420sp[yp])) - 16;
-                    if (y < 0) y = 0;
-                    if ((i & 1) == 0) {
-                        v = (0xff & yuv420sp[uvp++]) - 128;
-                        u = (0xff & yuv420sp[uvp++]) - 128;
-                    }
-
-                    int y1192 = 1192 * y;
-                    int r = (y1192 + 1634 * v);
-                    int g = (y1192 - 833 * v - 400 * u);
-                    int b = (y1192 + 2066 * u);
-
-                    if (r < 0) r = 0; else if (r > 262143) r = 262143;
-                    if (g < 0) g = 0; else if (g > 262143) g = 262143;
-                    if (b < 0) b = 0; else if (b > 262143) b = 262143;
-
-                    rgb[yp] = 0xff000000 | ((r << 6) & 0xff0000) | ((g >> 2) &
-                            0xff00) | ((b >> 10) & 0xff);
-
-
-                }
-            }
-            return rgb;
-        }
 
     }
 
