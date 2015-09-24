@@ -8,7 +8,9 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
+import android.graphics.Color;
 import android.graphics.PixelFormat;
+import android.graphics.Typeface;
 import android.graphics.drawable.AnimationDrawable;
 import android.hardware.Camera;
 import android.media.AudioManager;
@@ -29,6 +31,10 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+
+import com.nhaarman.supertooltips.ToolTip;
+import com.nhaarman.supertooltips.ToolTipRelativeLayout;
+import com.nhaarman.supertooltips.ToolTipView;
 
 import org.opencv.objdetect.CascadeClassifier;
 
@@ -51,7 +57,7 @@ import static android.hardware.Camera.getCameraInfo;
 import static android.hardware.Camera.open;
 
 
-public class Custom_CameraActivity extends Activity implements  AutoFocusCallback{
+public class Custom_CameraActivity extends Activity implements  AutoFocusCallback, ToolTipView.OnToolTipViewClickedListener{
     private Camera mCamera;
 
 
@@ -92,8 +98,11 @@ public class Custom_CameraActivity extends Activity implements  AutoFocusCallbac
     File storedImageFile;
     FrameLayout preview;
     Activity thisActivity = this;
-
+    ToolTipRelativeLayout toolTipRelativeLayout;
+    ToolTip toolTip;
+    ToolTipView myToolTipView;
     public final int RATIO = 8;
+    public boolean showTip = true;
     //private ViewSwitcher switcher;
 
 
@@ -143,8 +152,8 @@ public class Custom_CameraActivity extends Activity implements  AutoFocusCallbac
         //mCamera = open(cameraOrientation);
         mCamera = open(cameraOrientation);
         tvCountDown = (TextView) findViewById(R.id.textView);
-        tvCountDown.setTextSize(20);
-        tvCountDown.setText("touch to start detection");
+       // tvCountDown.setTextSize(20);
+        tvCountDown.setText("");
         setCameraDisplayOrientation(this, 0, mCamera);
 
         preview = (FrameLayout) findViewById(R.id.camera_preview);
@@ -170,6 +179,29 @@ public class Custom_CameraActivity extends Activity implements  AutoFocusCallbac
         //switcher = (ViewSwitcher) findViewById(R.id.profileSwitcher);
 
         ivPhoto = (ImageView) findViewById(R.id.lastPhoto);
+
+        toolTipRelativeLayout= (ToolTipRelativeLayout) findViewById(R.id.activity_main_tooltipRelativeLayout);
+
+        ImageView imageView = new ImageView(this);
+        LinearLayout.LayoutParams vp =
+                new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,
+                        LinearLayout.LayoutParams.WRAP_CONTENT);
+        imageView.setLayoutParams(vp);
+        imageView.setImageResource(R.drawable.number_of_images_shadow);
+
+        Typeface face = Typeface.createFromAsset(getAssets(),
+                "Aller_Bd.ttf");
+
+
+        toolTip = new ToolTip()
+                .withColor(Color.WHITE)
+                .withShadow().withText(R.string.info,face);
+           //    .withAnimationType(ToolTip.AnimationType.FROM_TOP).withContentView(imageView);
+
+        myToolTipView = null;
+       // myToolTipView = toolTipRelativeLayout.showToolTipForView(toolTip, btnStartDetection);
+
+
 
         int orient = getResources().getConfiguration().orientation;
         deviceOrientation = orient;
@@ -208,6 +240,12 @@ public class Custom_CameraActivity extends Activity implements  AutoFocusCallbac
                 params.width = display.getWidth()*6/8;
                 params.height = display.getHeight();
                 preview.setLayoutParams(params);
+                if (showTip){
+                    myToolTipView = null;
+                    myToolTipView = toolTipRelativeLayout.showToolTipForView(toolTip, (LinearLayout) findViewById(R.id.layoutLandscapeAssist));
+                    myToolTipView.setOnToolTipViewClickedListener(Custom_CameraActivity.this);
+                }
+
 
                 Log.i(TAG, "landscape orientation");
                 break;
@@ -233,6 +271,12 @@ public class Custom_CameraActivity extends Activity implements  AutoFocusCallbac
                 params.height = display.getHeight()*6/8;
                 preview.setLayoutParams(params);
 
+                if (showTip){
+                    myToolTipView = null;
+                    myToolTipView = toolTipRelativeLayout.showToolTipForView(toolTip, btnStartDetection);
+                    myToolTipView.setOnToolTipViewClickedListener(Custom_CameraActivity.this);
+                }
+
 
                 Log.i(TAG, "portrait orientation");
                 break;
@@ -240,6 +284,7 @@ public class Custom_CameraActivity extends Activity implements  AutoFocusCallbac
                 setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
                 Log.i("orientation", "uncs");
         }
+
 
         btnStartDetection.setOnClickListener(new View.OnClickListener() {
 
@@ -553,7 +598,7 @@ public class Custom_CameraActivity extends Activity implements  AutoFocusCallbac
             Log.i(TAG,"prolaz 6");
 
         }
-        Log.i(TAG,"izlazim iz ulazim u takePicture metodu");
+        Log.i(TAG, "izlazim iz ulazim u takePicture metodu");
 
     }
 
@@ -718,6 +763,20 @@ public class Custom_CameraActivity extends Activity implements  AutoFocusCallbac
                 params.height = display.getHeight();
                 preview.setLayoutParams(params);
 
+                if (showTip){
+                    try{
+                        myToolTipView.remove();
+                        myToolTipView = toolTipRelativeLayout.showToolTipForView(toolTip, (LinearLayout) findViewById(R.id.layoutLandscapeAssist));
+                        myToolTipView.setOnToolTipViewClickedListener(Custom_CameraActivity.this);
+                    } catch (Exception e){
+
+                    }
+
+                }
+
+
+
+
                 Log.i(TAG, "landscape orientation");
                 break;
             case Configuration.ORIENTATION_PORTRAIT:
@@ -741,6 +800,20 @@ public class Custom_CameraActivity extends Activity implements  AutoFocusCallbac
                 params.width = display.getWidth();
                 params.height = display.getHeight()*6/8;
                 preview.setLayoutParams(params);
+                myToolTipView = null;
+
+                if (showTip){
+                    try{
+                        myToolTipView.remove();
+                        myToolTipView = toolTipRelativeLayout.showToolTipForView(toolTip, (LinearLayout) findViewById(R.id.layoutHorizontalAssist));
+                        myToolTipView.setOnToolTipViewClickedListener(Custom_CameraActivity.this);
+                    } catch (Exception e){
+
+                    }
+
+
+                }
+
 
 
                 Log.i(TAG, "portrait orientation");
@@ -749,6 +822,9 @@ public class Custom_CameraActivity extends Activity implements  AutoFocusCallbac
                 setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
                 Log.i("orientation", "uncs");
         }
+
+
+
     }
 
 
@@ -785,5 +861,11 @@ public class Custom_CameraActivity extends Activity implements  AutoFocusCallbac
     }
 
 
+    @Override
+    public void onToolTipViewClicked(ToolTipView toolTipView) {
 
+        Log.i(TAG,"ottooltipclicked");
+        showTip = false;
+
+    }
 }

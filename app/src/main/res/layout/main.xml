@@ -140,5 +140,39 @@
 
     </LinearLayout>
 
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="70dp"
+        android:layout_height="70dp"
+        android:id="@+id/layoutLandscapeAssist"
+        android:layout_centerVertical="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true">
+
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="70dp"
+        android:layout_height="70dp"
+        android:layout_gravity="bottom"
+        android:gravity="center"
+        android:layout_alignWithParentIfMissing="false"
+        android:layout_above="@+id/linearLayoutDown"
+        android:layout_centerHorizontal="true"
+        android:id="@+id/layoutHorizontalAssist">
+
+
+    </LinearLayout>
+
+    <com.nhaarman.supertooltips.ToolTipRelativeLayout
+        android:id="@+id/activity_main_tooltipRelativeLayout"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_alignParentBottom="true" >
+
+    </com.nhaarman.supertooltips.ToolTipRelativeLayout>
+
 
 </RelativeLayout>

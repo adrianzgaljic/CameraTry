@@ -26,6 +26,8 @@ import java.util.List;
 import java.util.Set;
 
 
+
+
 public class CameraPreview extends SurfaceView implements
         SurfaceHolder.Callback{
 
@@ -153,8 +155,8 @@ public class CameraPreview extends SurfaceView implements
                                     Log.e(TAG, "greska je: " + e.toString());
                                 }
                             } else {
-                                ac.tvCountDown.setTextSize(20);
-                                ac.tvCountDown.setText("touch to start detection");
+                               // ac.tvCountDown.setTextSize(20);
+                               // ac.tvCountDown.setText("touch to start detection");
                                 ac.btnStartDetection.setBackgroundResource(R.drawable.start_shadow);
 
 
