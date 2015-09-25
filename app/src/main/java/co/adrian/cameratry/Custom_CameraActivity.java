@@ -22,6 +22,7 @@ import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.Display;
+import android.view.LayoutInflater;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.View;
@@ -104,6 +105,8 @@ public class Custom_CameraActivity extends Activity implements  AutoFocusCallbac
     public final int RATIO = 8;
     public boolean showTip = true;
     //private ViewSwitcher switcher;
+    LinearLayout tipLayoutPortrait;
+    LinearLayout tipLayoutLandscape;
 
 
 
@@ -191,11 +194,13 @@ public class Custom_CameraActivity extends Activity implements  AutoFocusCallbac
 
         Typeface face = Typeface.createFromAsset(getAssets(),
                 "Aller_Bd.ttf");
+        tipLayoutPortrait = layoutDown;
+        tipLayoutLandscape = layoutDown;
 
 
         toolTip = new ToolTip()
-                .withColor(Color.WHITE)
-                .withShadow().withText(R.string.info,face);
+                .withColor(Color.WHITE).withContentView(LayoutInflater.from(this).inflate(R.layout.tip, null));
+              //  .withShadow().withText(R.string.info,face);
            //    .withAnimationType(ToolTip.AnimationType.FROM_TOP).withContentView(imageView);
 
         myToolTipView = null;
@@ -242,7 +247,7 @@ public class Custom_CameraActivity extends Activity implements  AutoFocusCallbac
                 preview.setLayoutParams(params);
                 if (showTip){
                     myToolTipView = null;
-                    myToolTipView = toolTipRelativeLayout.showToolTipForView(toolTip, (LinearLayout) findViewById(R.id.layoutLandscapeAssist));
+                    myToolTipView = toolTipRelativeLayout.showToolTipForView(toolTip, tipLayoutLandscape);
                     myToolTipView.setOnToolTipViewClickedListener(Custom_CameraActivity.this);
                 }
 
@@ -273,7 +278,7 @@ public class Custom_CameraActivity extends Activity implements  AutoFocusCallbac
 
                 if (showTip){
                     myToolTipView = null;
-                    myToolTipView = toolTipRelativeLayout.showToolTipForView(toolTip, btnStartDetection);
+                    myToolTipView = toolTipRelativeLayout.showToolTipForView(toolTip, tipLayoutPortrait);
                     myToolTipView.setOnToolTipViewClickedListener(Custom_CameraActivity.this);
                 }
 
@@ -765,8 +770,8 @@ public class Custom_CameraActivity extends Activity implements  AutoFocusCallbac
 
                 if (showTip){
                     try{
-                        myToolTipView.remove();
-                        myToolTipView = toolTipRelativeLayout.showToolTipForView(toolTip, (LinearLayout) findViewById(R.id.layoutLandscapeAssist));
+                       // myToolTipView.remove();
+                        myToolTipView = toolTipRelativeLayout.showToolTipForView(toolTip, (LinearLayout)findViewById(R.id.layoutLandscapeAssist));
                         myToolTipView.setOnToolTipViewClickedListener(Custom_CameraActivity.this);
                     } catch (Exception e){
 
@@ -804,8 +809,8 @@ public class Custom_CameraActivity extends Activity implements  AutoFocusCallbac
 
                 if (showTip){
                     try{
-                        myToolTipView.remove();
-                        myToolTipView = toolTipRelativeLayout.showToolTipForView(toolTip, (LinearLayout) findViewById(R.id.layoutHorizontalAssist));
+                     //   myToolTipView.remove();
+                        myToolTipView = toolTipRelativeLayout.showToolTipForView(toolTip,(LinearLayout)findViewById(R.id.layoutLandscapeAssist));
                         myToolTipView.setOnToolTipViewClickedListener(Custom_CameraActivity.this);
                     } catch (Exception e){
 
