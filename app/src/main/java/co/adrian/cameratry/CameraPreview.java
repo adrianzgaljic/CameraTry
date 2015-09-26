@@ -157,7 +157,7 @@ public class CameraPreview extends SurfaceView implements
                             } else {
                                // ac.tvCountDown.setTextSize(20);
                                // ac.tvCountDown.setText("touch to start detection");
-                                ac.btnStartDetection.setBackgroundResource(R.drawable.start_shadow);
+                                ac.btnStartDetection.setBackgroundResource(R.drawable.start);
 
 
                             }

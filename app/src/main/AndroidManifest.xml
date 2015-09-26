@@ -8,18 +8,25 @@
 
     <application
         android:allowBackup="true"
-        android:icon="@drawable/selphylogotry6"
+        android:icon="@drawable/selphyicon"
         android:label="@string/app_name"
-        android:theme="@style/AppTheme">
+        android:theme="@style/AppTheme"
+        android:largeHeap="true">
 
     <activity
-            android:name=".Custom_CameraActivity"
+            android:name=".StartClass"
             android:configChanges="orientation|screenSize"
             android:label="@string/app_name" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+        </activity>
+        <activity
+            android:name=".Custom_CameraActivity"
+            >
+
+
         </activity>
     </application>
 

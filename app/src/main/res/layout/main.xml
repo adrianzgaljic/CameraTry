@@ -8,11 +8,6 @@
     android:orientation="horizontal">
 
 
-<RelativeLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:orientation="horizontal">
 
 
 
@@ -67,7 +62,7 @@
         android:layout_width="match_parent"
         android:layout_height="70dp"
         android:id="@+id/linearLayoutDown"
-        android:background="#ff0064ff"
+        android:background="@drawable/down"
         android:gravity="center"
         android:layout_alignParentRight="true"
         android:layout_alignParentBottom="true"
@@ -81,7 +76,7 @@
             android:layout_width="50dp"
             android:layout_height="50dp"
             android:id="@+id/button"
-            android:background="@drawable/start_shadow" />
+            android:background="@drawable/start" />
 
     </LinearLayout>
 
@@ -90,7 +85,7 @@
         android:layout_width="match_parent"
         android:layout_height="70dp"
         android:id="@+id/linearLayout"
-        android:background="#ff0064ff"
+        android:background="@drawable/up"
         android:gravity="center"
         android:layout_alignParentTop="false"
         android:layout_alignParentLeft="false"
@@ -149,12 +144,4 @@
 
 </RelativeLayout>
 
-    <com.nhaarman.supertooltips.ToolTipRelativeLayout
-        android:id="@+id/activity_main_tooltipRelativeLayout"
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
-        android:layout_alignParentBottom="true" >
 
-    </com.nhaarman.supertooltips.ToolTipRelativeLayout>
-
-</RelativeLayout>

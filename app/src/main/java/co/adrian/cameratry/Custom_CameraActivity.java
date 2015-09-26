@@ -58,7 +58,7 @@ import static android.hardware.Camera.getCameraInfo;
 import static android.hardware.Camera.open;
 
 
-public class Custom_CameraActivity extends Activity implements  AutoFocusCallback, ToolTipView.OnToolTipViewClickedListener{
+public class Custom_CameraActivity extends Activity implements  AutoFocusCallback{
     private Camera mCamera;
 
 
@@ -99,14 +99,10 @@ public class Custom_CameraActivity extends Activity implements  AutoFocusCallbac
     File storedImageFile;
     FrameLayout preview;
     Activity thisActivity = this;
-    ToolTipRelativeLayout toolTipRelativeLayout;
-    ToolTip toolTip;
-    ToolTipView myToolTipView;
+    private Uri ImageUri;
+
     public final int RATIO = 8;
-    public boolean showTip = true;
-    //private ViewSwitcher switcher;
-    LinearLayout tipLayoutPortrait;
-    LinearLayout tipLayoutLandscape;
+
 
 
 
@@ -183,7 +179,7 @@ public class Custom_CameraActivity extends Activity implements  AutoFocusCallbac
 
         ivPhoto = (ImageView) findViewById(R.id.lastPhoto);
 
-        toolTipRelativeLayout= (ToolTipRelativeLayout) findViewById(R.id.activity_main_tooltipRelativeLayout);
+
 
         ImageView imageView = new ImageView(this);
         LinearLayout.LayoutParams vp =
@@ -194,17 +190,7 @@ public class Custom_CameraActivity extends Activity implements  AutoFocusCallbac
 
         Typeface face = Typeface.createFromAsset(getAssets(),
                 "Aller_Bd.ttf");
-        tipLayoutPortrait = layoutDown;
-        tipLayoutLandscape = layoutDown;
 
-
-        toolTip = new ToolTip()
-                .withColor(Color.WHITE).withContentView(LayoutInflater.from(this).inflate(R.layout.tip, null));
-              //  .withShadow().withText(R.string.info,face);
-           //    .withAnimationType(ToolTip.AnimationType.FROM_TOP).withContentView(imageView);
-
-        myToolTipView = null;
-       // myToolTipView = toolTipRelativeLayout.showToolTipForView(toolTip, btnStartDetection);
 
 
 
@@ -245,11 +231,7 @@ public class Custom_CameraActivity extends Activity implements  AutoFocusCallbac
                 params.width = display.getWidth()*6/8;
                 params.height = display.getHeight();
                 preview.setLayoutParams(params);
-                if (showTip){
-                    myToolTipView = null;
-                    myToolTipView = toolTipRelativeLayout.showToolTipForView(toolTip, tipLayoutLandscape);
-                    myToolTipView.setOnToolTipViewClickedListener(Custom_CameraActivity.this);
-                }
+
 
 
                 Log.i(TAG, "landscape orientation");
@@ -276,11 +258,6 @@ public class Custom_CameraActivity extends Activity implements  AutoFocusCallbac
                 params.height = display.getHeight()*6/8;
                 preview.setLayoutParams(params);
 
-                if (showTip){
-                    myToolTipView = null;
-                    myToolTipView = toolTipRelativeLayout.showToolTipForView(toolTip, tipLayoutPortrait);
-                    myToolTipView.setOnToolTipViewClickedListener(Custom_CameraActivity.this);
-                }
 
 
                 Log.i(TAG, "portrait orientation");
@@ -707,7 +684,8 @@ public class Custom_CameraActivity extends Activity implements  AutoFocusCallbac
                 .format(new Date());
         File mediaFile;
         mediaFile = new File(mediaStorageDir.getPath() + File.separator
-                + "adrianfotka_" +timeStamp + ".jpg");
+               // + "adrianfotka_" +timeStamp + ".jpg");
+                + "adrianfotka.jpg");
 
         storedImageFile = mediaFile;
         return mediaFile;
@@ -768,17 +746,6 @@ public class Custom_CameraActivity extends Activity implements  AutoFocusCallbac
                 params.height = display.getHeight();
                 preview.setLayoutParams(params);
 
-                if (showTip){
-                    try{
-                       // myToolTipView.remove();
-                        myToolTipView = toolTipRelativeLayout.showToolTipForView(toolTip, (LinearLayout)findViewById(R.id.layoutLandscapeAssist));
-                        myToolTipView.setOnToolTipViewClickedListener(Custom_CameraActivity.this);
-                    } catch (Exception e){
-
-                    }
-
-                }
-
 
 
 
@@ -805,19 +772,6 @@ public class Custom_CameraActivity extends Activity implements  AutoFocusCallbac
                 params.width = display.getWidth();
                 params.height = display.getHeight()*6/8;
                 preview.setLayoutParams(params);
-                myToolTipView = null;
-
-                if (showTip){
-                    try{
-                     //   myToolTipView.remove();
-                        myToolTipView = toolTipRelativeLayout.showToolTipForView(toolTip,(LinearLayout)findViewById(R.id.layoutLandscapeAssist));
-                        myToolTipView.setOnToolTipViewClickedListener(Custom_CameraActivity.this);
-                    } catch (Exception e){
-
-                    }
-
-
-                }
 
 
 
@@ -856,9 +810,26 @@ public class Custom_CameraActivity extends Activity implements  AutoFocusCallbac
             @Override
             public void onMediaScannerConnected() {
                 Log.i(TAG,"imFile="+imageFile);
-                File imageFile2 = new File("/storage/emulated/0/Pictures/MyCameraApp/adrianfotka_20150829_053445.jpg");
+                File imageFile2 = new File("/storage/emulated/0/Pictures/MyCameraApp/adrianfotka.jpg");
                 conn.scanFile(imageFile2.getAbsolutePath(), "*/*");
                // conn.scanFile(imageFile.getAbsolutePath());
+                /*
+                try {
+                    Log.d("onScanCompleted",uri.toString() + "success"+conn);
+                    if (uri != null)
+                    {
+
+                        Intent intent = new Intent(Intent.ACTION_DEFAULT);
+                        intent.setData(uri);
+                        startActivity(intent);
+                    }
+                } finally
+
+                {
+                    conn.disconnect();
+                    conn = null;
+                }
+                */
             }
         });
 
@@ -866,11 +837,4 @@ public class Custom_CameraActivity extends Activity implements  AutoFocusCallbac
     }
 
 
-    @Override
-    public void onToolTipViewClicked(ToolTipView toolTipView) {
-
-        Log.i(TAG,"ottooltipclicked");
-        showTip = false;
-
-    }
 }
