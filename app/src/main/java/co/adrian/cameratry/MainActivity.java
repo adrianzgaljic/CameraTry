@@ -8,8 +8,13 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Path;
 import android.graphics.PixelFormat;
+import android.graphics.Rect;
 import android.graphics.Typeface;
 import android.graphics.drawable.AnimationDrawable;
 import android.hardware.Camera;
@@ -27,11 +32,13 @@ import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.MimeTypeMap;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.nhaarman.supertooltips.ToolTip;
 import com.nhaarman.supertooltips.ToolTipRelativeLayout;
@@ -58,7 +65,7 @@ import static android.hardware.Camera.getCameraInfo;
 import static android.hardware.Camera.open;
 
 
-public class Custom_CameraActivity extends Activity implements  AutoFocusCallback{
+public class MainActivity extends Activity implements  AutoFocusCallback{
     private Camera mCamera;
 
 
@@ -100,6 +107,7 @@ public class Custom_CameraActivity extends Activity implements  AutoFocusCallbac
     FrameLayout preview;
     Activity thisActivity = this;
     private Uri ImageUri;
+    private File mediaFile = null;
 
     public final int RATIO = 8;
 
@@ -186,7 +194,8 @@ public class Custom_CameraActivity extends Activity implements  AutoFocusCallbac
                 new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,
                         LinearLayout.LayoutParams.WRAP_CONTENT);
         imageView.setLayoutParams(vp);
-        imageView.setImageResource(R.drawable.number_of_images_shadow);
+        //// TODO: 29/09/15  
+        imageView.setImageResource(R.drawable.number_of_images_new);
 
         Typeface face = Typeface.createFromAsset(getAssets(),
                 "Aller_Bd.ttf");
@@ -203,7 +212,7 @@ public class Custom_CameraActivity extends Activity implements  AutoFocusCallbac
         //final float scale = context.getResources().getDisplayMetrics().density;
         //int pixels = (int) (70 * scale + 0.5f);
         Display display = getWindowManager().getDefaultDisplay();
-
+        Log.i(TAG,"ONCREATE");
         switch(orient) {
 
             case Configuration.ORIENTATION_LANDSCAPE:
@@ -219,6 +228,7 @@ public class Custom_CameraActivity extends Activity implements  AutoFocusCallbac
 
 
                 view_instance = (View)findViewById(R.id.linearLayout);
+                view_instance.setBackgroundResource(R.drawable.up_vertical);
                 params=view_instance.getLayoutParams();
                 //params.width= pixels;
                 params.width = display.getWidth()/8;
@@ -246,6 +256,7 @@ public class Custom_CameraActivity extends Activity implements  AutoFocusCallbac
                 view_instance.setLayoutParams(params);
 
                 view_instance = (View)findViewById(R.id.linearLayout);
+                view_instance.setBackgroundResource(R.drawable.up);
                 params=view_instance.getLayoutParams();
                 params.width= ViewGroup.LayoutParams.MATCH_PARENT;
                 params.height= display.getHeight()/8;
@@ -303,7 +314,7 @@ public class Custom_CameraActivity extends Activity implements  AutoFocusCallbac
                                 switch (item) {
                                     case 0:
                                         timerTime = 0;
-                                        timerButton.setBackgroundResource(R.drawable.timer_zero_white);
+                                        timerButton.setBackgroundResource(R.drawable.timer_zero_new);
                                         break;
                                     case 1:
                                         timerTime = 2;
@@ -337,11 +348,12 @@ public class Custom_CameraActivity extends Activity implements  AutoFocusCallbac
 
                 if (flash.equals(FLASH_MODE_ON)) {
                     flash = FLASH_MODE_OFF;
-                    flashButton.setBackgroundResource(R.drawable.flash_off_white);
+                    flashButton.setBackgroundResource(R.drawable.flash_off_new);
 
                 } else {
                     flash = FLASH_MODE_ON;
-                    flashButton.setBackgroundResource(R.drawable.flash_on_white);
+                    //// TODO: 29/09/15  stavi flash on
+                    flashButton.setBackgroundResource(R.drawable.flash_off_new);
                 }
 
             }
@@ -466,7 +478,17 @@ public class Custom_CameraActivity extends Activity implements  AutoFocusCallbac
 
         ivPhoto.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                notifySystemWithImage(new File(Environment.getExternalStorageDirectory().toString()));
+                if (mediaFile!= null){
+                    Intent i=new Intent();
+                    i.setAction(Intent.ACTION_VIEW);
+                    i.setDataAndType(Uri.fromFile(mediaFile), "image/*");
+                    startActivity(i);
+                } else {
+                    showToast("No images yet");
+                }
+
+             //   startActivity(new Intent("com.android.gallery3d"));
+               // notifySystemWithImage(new File(Environment.getExternalStorageDirectory().toString()));
                 /*Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(
                         "content://media/internal/images/media"));
                 File mediaStorageDir = new File(
@@ -651,7 +673,13 @@ public class Custom_CameraActivity extends Activity implements  AutoFocusCallbac
                     }  catch (IOException e) {
                     }
 
-                    lastPhoto.setImageURI(Uri.fromFile(pictureFile));
+                    //lastPhoto.setImageURI(Uri.fromFile(pictureFile));
+                    BitmapFactory.Options options = new BitmapFactory.Options();
+                    options.inDither = false;
+                    options.inPreferredConfig = Bitmap.Config.ARGB_8888;
+
+                    Bitmap image = BitmapFactory.decodeByteArray(data, 0, data.length, options);
+                    lastPhoto.setImageBitmap(getRoundedShape(image));
                     ContentValues values = new ContentValues();
 
                     values.put(MediaStore.Images.Media.DATE_TAKEN, System.currentTimeMillis());
@@ -672,17 +700,17 @@ public class Custom_CameraActivity extends Activity implements  AutoFocusCallbac
         File mediaStorageDir = new File(
                 Environment
                         .getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
-                "MyCameraApp");
+                "Selphy");
         if (!mediaStorageDir.exists()) {
             if (!mediaStorageDir.mkdirs()) {
-                Log.d("MyCameraApp", "failed to create directory");
+                Log.d("Selphy", "failed to create directory");
                 return null;
             }
         }
         // Create a media file name
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss")
                 .format(new Date());
-        File mediaFile;
+
         mediaFile = new File(mediaStorageDir.getPath() + File.separator
                // + "adrianfotka_" +timeStamp + ".jpg");
                 + "adrianfotka.jpg");
@@ -733,6 +761,7 @@ public class Custom_CameraActivity extends Activity implements  AutoFocusCallbac
 
 
                 view_instance = (View)findViewById(R.id.linearLayout);
+                view_instance.setBackgroundResource(R.drawable.up_vertical);
                 params=view_instance.getLayoutParams();
                 //params.width= pixels;
                 params.width = display.getWidth()/8;
@@ -761,6 +790,7 @@ public class Custom_CameraActivity extends Activity implements  AutoFocusCallbac
                 view_instance.setLayoutParams(params);
 
                 view_instance = (View)findViewById(R.id.linearLayout);
+                view_instance.setBackgroundResource(R.drawable.up_vertical);
                 params=view_instance.getLayoutParams();
                 params.width= ViewGroup.LayoutParams.MATCH_PARENT;
                 params.height= display.getHeight()/8;
@@ -809,11 +839,22 @@ public class Custom_CameraActivity extends Activity implements  AutoFocusCallbac
 
             @Override
             public void onMediaScannerConnected() {
-                Log.i(TAG,"imFile="+imageFile);
-                File imageFile2 = new File("/storage/emulated/0/Pictures/MyCameraApp/adrianfotka.jpg");
-                conn.scanFile(imageFile2.getAbsolutePath(), "*/*");
+                Uri uri =  Uri.fromFile(new File( Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM),"/"+"MyCameraApp/adrianfotka.jpg" ));
+                Intent intent = new Intent(android.content.Intent.ACTION_VIEW);
+                String mime = "*/*";
+                MimeTypeMap mimeTypeMap = MimeTypeMap.getSingleton();
+                if (mimeTypeMap.hasExtension(
+                        mimeTypeMap.getFileExtensionFromUrl(uri.toString())))
+                    mime = mimeTypeMap.getMimeTypeFromExtension(
+                            mimeTypeMap.getFileExtensionFromUrl(uri.toString()));
+                intent.setDataAndType(uri,mime);
+                startActivity(intent);
+         /*        Log.i(TAG,"imFile="+imageFile);
+            //    File imageFile2 = new File("/storage/emulated/0/Pictures/MyCameraApp/adrianfotka.jpg");
+                File imageFile2 = new File("/storage/emulated/0/DCIM/Camera/20150927_134341.jpg");
+               // conn.scanFile(imageFile2.getAbsolutePath(), "*");
                // conn.scanFile(imageFile.getAbsolutePath());
-                /*
+
                 try {
                     Log.d("onScanCompleted",uri.toString() + "success"+conn);
                     if (uri != null)
@@ -834,6 +875,37 @@ public class Custom_CameraActivity extends Activity implements  AutoFocusCallbac
         });
 
         conn.connect();
+    }
+
+    public Bitmap getRoundedShape(Bitmap scaleBitmapImage) {
+        int targetWidth = 50;
+        int targetHeight = 50;
+        Bitmap targetBitmap = Bitmap.createBitmap(targetWidth,
+                targetHeight,Bitmap.Config.ARGB_8888);
+
+        Canvas canvas = new Canvas(targetBitmap);
+        Path path = new Path();
+        path.addCircle(((float) targetWidth - 1) / 2,
+                ((float) targetHeight - 1) / 2,
+                (Math.min(((float) targetWidth),
+                        ((float) targetHeight)) / 2),
+                Path.Direction.CCW);
+
+        canvas.clipPath(path);
+        Bitmap sourceBitmap = scaleBitmapImage;
+        canvas.drawBitmap(sourceBitmap,
+                new Rect(0, 0, sourceBitmap.getWidth(),
+                        sourceBitmap.getHeight()),
+                new Rect(0, 0, targetWidth, targetHeight), null);
+        return targetBitmap;
+    }
+
+    public void showToast(String text){
+        Context context = getApplicationContext();
+        int duration = Toast.LENGTH_SHORT;
+
+        Toast toast = Toast.makeText(context, text, duration);
+        toast.show();
     }
 
 

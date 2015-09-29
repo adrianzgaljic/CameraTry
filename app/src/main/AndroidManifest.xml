@@ -14,7 +14,7 @@
         android:largeHeap="true">
 
     <activity
-            android:name=".StartClass"
+            android:name=".StartActivity"
             android:configChanges="orientation|screenSize"
             android:label="@string/app_name" >
             <intent-filter>
@@ -23,7 +23,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".Custom_CameraActivity"
+            android:name=".MainActivity"
             >
 
 

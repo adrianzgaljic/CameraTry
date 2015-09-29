@@ -10,7 +10,7 @@ import android.widget.RelativeLayout;
 /**
  * Created by adrianzgaljic on 26/09/15.
  */
-public class StartClass extends Activity {
+public class StartActivity extends Activity {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -23,7 +23,7 @@ public class StartClass extends Activity {
 
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(StartClass.this, Custom_CameraActivity.class);
+                Intent intent = new Intent(StartActivity.this, MainActivity.class);
                 startActivity(intent);
             }
         });

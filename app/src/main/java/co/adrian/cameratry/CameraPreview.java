@@ -3,7 +3,6 @@ package co.adrian.cameratry;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.ImageFormat;
 import android.graphics.Paint;
 import android.graphics.YuvImage;
 import android.hardware.Camera;
@@ -38,10 +37,9 @@ public class CameraPreview extends SurfaceView implements
     private Paint textPaint = new Paint();
     private CascadeClassifier faceDetector = null;
 
-    private Custom_CameraActivity ac = null;
+    private MainActivity mActivity = null;
     private DrawingSurface drawSurface;
     private List<Rect> listOfFaces;
-    private List<Rect> assistantListOfFaces;
     boolean processInProgress = false;
     Bitmap b;
     Mat mat;
@@ -52,6 +50,7 @@ public class CameraPreview extends SurfaceView implements
     // Constructor that obtains context and camera
     @SuppressWarnings("deprecation")
     public CameraPreview(Context context, Camera camera, DrawingSurface drawSurface) {
+
         super(context);
         this.mCamera = camera;
         this.mSurfaceHolder = this.getHolder();
@@ -62,33 +61,27 @@ public class CameraPreview extends SurfaceView implements
         textPaint.setTextSize(60);
 
         listOfFaces = new ArrayList<Rect>();
-        assistantListOfFaces = new ArrayList<Rect>();
-
 
 
         try{
-            ac = (Custom_CameraActivity) context;
-            faceDetector = ac.faceDetector;
-            Log.e(TAG, "face detector: "+faceDetector.toString());
+            mActivity = (MainActivity) context;
+            faceDetector = mActivity.faceDetector;
         } catch (Exception e){
-            Log.e(TAG,"GRESKA FACEDETECTOR: "+e.toString());
+            Log.e(TAG,"[CameraPreview] error catching face detector "+e.toString());
         }
 
 
-
-}
+    }
 
     @Override
     public void surfaceCreated(SurfaceHolder surfaceHolder) {
-        try {
 
+        try {
             mCamera.setPreviewDisplay(surfaceHolder);
             mCamera.startPreview();
             mCamera.setPreviewCallback(null);
-            Log.i(TAG,"faces max= "+ mCamera.getParameters().getMaxNumDetectedFaces());
-
         } catch (Exception e) {
-            Log.e(TAG,"ERROR: "+e.toString());
+            Log.e(TAG,"[CameraPreview] error creating preview "+e.toString());
         }
 
     }
@@ -99,8 +92,6 @@ public class CameraPreview extends SurfaceView implements
             mCamera.stopPreview();
             mCamera.setPreviewCallback(null);
             mCamera.release();
-
-
     }
 
 
@@ -111,8 +102,6 @@ public class CameraPreview extends SurfaceView implements
     @Override
     public void surfaceChanged(SurfaceHolder surfaceHolder, int format,
             int width, int height) {
-        // start preview with new settings
-
 
 
         try {
@@ -127,39 +116,19 @@ public class CameraPreview extends SurfaceView implements
                 public void onPreviewFrame(byte[] data, Camera camera) {
                     try {
 
-                        Set<Thread> threadSet = Thread.getAllStackTraces().keySet();
-                        Runtime info = Runtime.getRuntime();
-                        long freeSize = info.freeMemory();
-                        long totalSize = info.totalMemory();
-                        long usedSize = totalSize - freeSize;
-
-                        //Log.i(TAG,"free ="+freeSize);
-                        Log.i(TAG, "free =" + Runtime.getRuntime().freeMemory());
-
-
-                        if (ac.isOver && !processInProgress) {
-                            if (ac.detectionStarted) {
-
-                                int numberOfPictures = ac.numberOfImages;
-
-
+                        if (mActivity.isOver && !processInProgress) {
+                            if (mActivity.detectionStarted) {
+                                int numberOfPictures = mActivity.numberOfImages;
                                 try {
 
-                                    //      if (!processInProgress){
                                     processingTask = new ProcessPreviewDataTask(camera, data, mat, faceDetections, drawSurface, b, numberOfPictures);
                                     processingTask.execute();
-                                    //     }
-
 
                                 } catch (Exception e) {
-                                    Log.e(TAG, "greska je: " + e.toString());
+                                    Log.e(TAG, "Error executing AsynTask " + e.toString());
                                 }
                             } else {
-                               // ac.tvCountDown.setTextSize(20);
-                               // ac.tvCountDown.setText("touch to start detection");
-                                ac.btnStartDetection.setBackgroundResource(R.drawable.start);
-
-
+                                mActivity.btnStartDetection.setBackgroundResource(R.drawable.start);
                             }
                         }
 
@@ -172,7 +141,6 @@ public class CameraPreview extends SurfaceView implements
 
 
             });
-
 
             mCamera.setPreviewDisplay(surfaceHolder);
             mCamera.startPreview();
@@ -188,23 +156,18 @@ public class CameraPreview extends SurfaceView implements
 
 
 
-        public  class ProcessPreviewDataTask
+    public  class ProcessPreviewDataTask
             extends AsyncTask<Void, Void, Boolean> {
 
         Camera camera;
         byte[] data;
-
         DrawingSurface drawSurface;
-
         int numberOfPictures;
 
         public ProcessPreviewDataTask(Camera camera, byte[] data, Mat mat, MatOfRect faceDetections, DrawingSurface drawSurface, Bitmap b, int numberOfPictures){
             this.camera = camera;
             this.data = data;
-          //  this.mat = mat;
-           // this.faceDetections = faceDetections;
             this.drawSurface = drawSurface;
-          //  this.b = b;
             this.numberOfPictures = numberOfPictures;
         }
 
@@ -253,7 +216,7 @@ public class CameraPreview extends SurfaceView implements
         protected void onPostExecute(Boolean result){
             Log.i(TAG, "running onPostExecute");
 
-            if (faceDetections.toArray().length > 0 && ac.picturesTaken < numberOfPictures && !ac.locked) {
+            if (faceDetections.toArray().length > 0 && mActivity.picturesTaken < numberOfPictures && !mActivity.locked) {
 
                 try {
                     drawSurface.playSound();
@@ -270,14 +233,13 @@ public class CameraPreview extends SurfaceView implements
 
                     Log.v(TAG, rect.toString());
                     drawSurface.drawFaces(rect, b.getWidth(), b.getHeight());
-                    android.graphics.Rect rectan = new android.graphics.Rect(rect.x, rect.y, rect.x + rect.width, rect.y + rect.height);
-                    focusRect = rectan;
+                    focusRect = new android.graphics.Rect(rect.x, rect.y, rect.x + rect.width, rect.y + rect.height);
                     //addToListOfFaces(rect);
                 }
 
                 try {
                     faceDetections.empty();
-                    ac.takePicture(focusRect);
+                    mActivity.takePicture(focusRect);
 
 
                 } catch (Exception e) {
@@ -289,7 +251,7 @@ public class CameraPreview extends SurfaceView implements
                     drawSurface.drawFaces(rect, b.getWidth(), b.getHeight());
                     android.graphics.Rect rectan = new android.graphics.Rect(rect.x, rect.y, rect.x + rect.width, rect.y + rect.height);
                     try {
-                        ac.takePicture(rectan);
+                        mActivity.takePicture(rectan);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
@@ -311,9 +273,9 @@ public class CameraPreview extends SurfaceView implements
 
             }
 
-            if (ac.picturesTaken >= numberOfPictures) {
-                ac.picturesTaken = 0;
-                ac.detectionStarted = false;
+            if (mActivity.picturesTaken >= numberOfPictures) {
+                mActivity.picturesTaken = 0;
+                mActivity.detectionStarted = false;
 
             }
             b.recycle();
