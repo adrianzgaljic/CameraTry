@@ -2,32 +2,50 @@ package co.adrian.cameratry;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.RelativeLayout;
 
 /**
- * Created by adrianzgaljic on 26/09/15.
+ * Created by adrianzgaljic on 01/10/15.
  */
 public class StartActivity extends Activity {
+
+    // TODO: 01/10/15  napravi da ovo radi! sa shared pref možeš pamtit i zadnju fotku pa ju otvorit prvi put
+    // TODO: 01/10/15 u cameraPreview se ne poziva surfacecreated -nakon detekcije prednje kamere i nakon vraćanja iz galerije! 
+    
+
+    public static final String TAG = "logIspis";
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.tip);
-        this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        Log.i(TAG, "start");
 
-        RelativeLayout surface = (RelativeLayout)findViewById(R.id.suface);
-        surface.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(StartActivity.this, MainActivity.class);
-                startActivity(intent);
-            }
-        });
+        SharedPreferences prefs = getSharedPreferences("selphy", 0);
+        SharedPreferences.Editor editor = prefs.edit();
+        Intent intent;
+        Log.i(TAG, "ok");
+        if (prefs.getBoolean("isInitialAppLaunch", false))
+        {
+            Log.i(TAG, "not initial");
+            intent = new Intent(this, MainActivity.class);
+            startActivity(intent);
+        }
+        else
+        {
+            Log.i(TAG, "initial ");
+            //First Time App launched, you are putting isInitialAppLaunch to false and calling create password activity.
+            editor.putBoolean("isInitialAppLaunch", false);
+            intent = new Intent(this, ShowInfoActivity.class);
+            startActivity(intent);
+        }
 
     }
 
+
 }
+

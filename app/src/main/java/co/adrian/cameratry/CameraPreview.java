@@ -67,7 +67,7 @@ public class CameraPreview extends SurfaceView implements
             mActivity = (MainActivity) context;
             faceDetector = mActivity.faceDetector;
         } catch (Exception e){
-            Log.e(TAG,"[CameraPreview] error catching face detector "+e.toString());
+            Log.e(TAG,"[CameraPreview] error catching face detector. "+e.toString());
         }
 
 
@@ -75,6 +75,7 @@ public class CameraPreview extends SurfaceView implements
 
     @Override
     public void surfaceCreated(SurfaceHolder surfaceHolder) {
+        Log.e(TAG, "[CameraPreview] surface created");
 
         try {
             mCamera.setPreviewDisplay(surfaceHolder);
@@ -88,7 +89,8 @@ public class CameraPreview extends SurfaceView implements
 
     @Override
     public void surfaceDestroyed(SurfaceHolder surfaceHolder) {
-
+            Log.e(TAG,"[CameraPreview] surface destroyed");
+            this.getHolder().removeCallback(this);
             mCamera.stopPreview();
             mCamera.setPreviewCallback(null);
             mCamera.release();
@@ -102,6 +104,7 @@ public class CameraPreview extends SurfaceView implements
     @Override
     public void surfaceChanged(SurfaceHolder surfaceHolder, int format,
             int width, int height) {
+        Log.e(TAG,"[CameraPreview] surface changed");
 
 
         try {
@@ -115,6 +118,7 @@ public class CameraPreview extends SurfaceView implements
                 @Override
                 public void onPreviewFrame(byte[] data, Camera camera) {
                     try {
+
 
                         if (mActivity.isOver && !processInProgress) {
                             if (mActivity.detectionStarted) {
@@ -147,10 +151,14 @@ public class CameraPreview extends SurfaceView implements
 
 
         } catch (Exception e) {
-            Log.i(TAG,"GRESKA KOJA SE TRAZI");
+            Log.i(TAG, "GRESKA KOJA SE TRAZI");
         }
 
     }
+
+
+
+
 
 
 

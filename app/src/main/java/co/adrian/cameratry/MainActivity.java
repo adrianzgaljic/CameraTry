@@ -7,6 +7,8 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -53,6 +55,7 @@ import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import static android.hardware.Camera.Area;
 import static android.hardware.Camera.AutoFocusCallback;
@@ -76,20 +79,21 @@ public class MainActivity extends Activity implements  AutoFocusCallback{
 
     private CameraPreview mCameraPreview;
     public static final String TAG = "logIspis";
+
     ImageView lastPhoto;
     public TextView tvCountDown;
     public CascadeClassifier faceDetector = null;
-    public String flash = FLASH_MODE_OFF;
+    public static String flash = FLASH_MODE_OFF;
     final Context context = this;
-    public int timerTime = 0;
-    public int numberOfImages = 1;
+    public static int timerTime = 0;
+    public static int numberOfImages;
     public int picturesTaken = 0;
     public boolean locked = false;
     public boolean isOver =true;
-    public boolean detectionStarted = false;
-    public boolean soundDetection = false;
-    public boolean soundCountdown = false;
-    public boolean soundShutter = false;
+    public static boolean detectionStarted = false;
+    public static boolean soundDetection = false;
+    public static boolean soundCountdown = false;
+    public static boolean soundShutter = false;
     SoundPool soundPool;
     int soundIdCountdown;
     int soundIdShutter;
@@ -148,6 +152,8 @@ public class MainActivity extends Activity implements  AutoFocusCallback{
             Log.e(TAG, "Error loading cascade ", e);
         }
 
+
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
 
@@ -159,7 +165,7 @@ public class MainActivity extends Activity implements  AutoFocusCallback{
         //mCamera = open(cameraOrientation);
         mCamera = open(cameraOrientation);
         tvCountDown = (TextView) findViewById(R.id.textView);
-       // tvCountDown.setTextSize(20);
+        // tvCountDown.setTextSize(20);
         tvCountDown.setText("");
         setCameraDisplayOrientation(this, 0, mCamera);
 
@@ -186,6 +192,27 @@ public class MainActivity extends Activity implements  AutoFocusCallback{
         //switcher = (ViewSwitcher) findViewById(R.id.profileSwitcher);
 
         ivPhoto = (ImageView) findViewById(R.id.lastPhoto);
+        if (numberOfImages==0){
+            numberOfImages=1;
+        }
+        imagesNumberButton.setText(Integer.toString(numberOfImages));
+
+        switch(timerTime){
+            case 0:
+                timerButton.setBackgroundResource(R.drawable.timer_zero_new);
+                break;
+            case 2:
+                timerButton.setBackgroundResource(R.drawable.timer_two_new);
+                break;
+            case 5:
+                timerButton.setBackgroundResource(R.drawable.timer_five_new);
+                break;
+        }
+        if (flash.equals(FLASH_MODE_OFF)){
+            flashButton.setBackgroundResource(R.drawable.flash_off_new);
+        } else {
+            flashButton.setBackgroundResource(R.drawable.flash_on_new);
+        }
 
 
 
@@ -218,6 +245,7 @@ public class MainActivity extends Activity implements  AutoFocusCallback{
             case Configuration.ORIENTATION_LANDSCAPE:
                 //setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
                 view_instance = (View)findViewById(R.id.linearLayoutDown);
+                view_instance.setBackgroundResource(R.drawable.down_vertical);
                 params=view_instance.getLayoutParams();
                 //params.width= pixels;
                 params.width = display.getWidth()/8;
@@ -248,6 +276,7 @@ public class MainActivity extends Activity implements  AutoFocusCallback{
                 break;
             case Configuration.ORIENTATION_PORTRAIT:
                 view_instance = (View)findViewById(R.id.linearLayoutDown);
+                view_instance.setBackgroundResource(R.drawable.down);
                 params=view_instance.getLayoutParams();
                 params.width= ViewGroup.LayoutParams.MATCH_PARENT;
                 params.height= display.getHeight()/8;
@@ -318,11 +347,11 @@ public class MainActivity extends Activity implements  AutoFocusCallback{
                                         break;
                                     case 1:
                                         timerTime = 2;
-                                        timerButton.setBackgroundResource(R.drawable.timer_two_white);
+                                        timerButton.setBackgroundResource(R.drawable.timer_two_new);
                                         break;
                                     case 2:
                                         timerTime = 5;
-                                        timerButton.setBackgroundResource(R.drawable.timer_five_white);
+                                        timerButton.setBackgroundResource(R.drawable.timer_five_new);
                                         break;
 
 
@@ -352,18 +381,17 @@ public class MainActivity extends Activity implements  AutoFocusCallback{
 
                 } else {
                     flash = FLASH_MODE_ON;
-                    //// TODO: 29/09/15  stavi flash on
-                    flashButton.setBackgroundResource(R.drawable.flash_off_new);
+                    flashButton.setBackgroundResource(R.drawable.flash_on_new);
                 }
 
             }
         });
 
         imagesNumberButton.setOnClickListener(new View.OnClickListener() {
-                AlertDialog alertDialog;
+            AlertDialog alertDialog;
 
-                @Override
-                public void onClick(View arg0) {
+            @Override
+            public void onClick(View arg0) {
 
                 AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(context);
                 final CharSequence[] items = {"1", "2", "3", "4", "5"};
@@ -392,56 +420,56 @@ public class MainActivity extends Activity implements  AutoFocusCallback{
             @Override
             public void onClick(View arg0) {
 
-            final CharSequence[] items = {"Detection sound","Countdown sound","Shutter sound"};
-        // arraylist to keep the selected items
-            final ArrayList seletedItems=new ArrayList();
+                final CharSequence[] items = {"Detection sound","Countdown sound","Shutter sound"};
+                // arraylist to keep the selected items
+                final ArrayList seletedItems=new ArrayList();
 
-            AlertDialog.Builder builder = new AlertDialog.Builder(context);
-            builder.setTitle("Select sounds");
-            boolean[] selected = {soundDetection,soundCountdown,soundShutter};
-            builder.setMultiChoiceItems(items, selected,
-                new DialogInterface.OnMultiChoiceClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int indexSelected,
-                                        boolean isChecked) {
-                        if (isChecked) {
-                            // If the user checked the item, add it to the selected items
-                            seletedItems.add(indexSelected);
-                        } else if (seletedItems.contains(indexSelected)) {
-                            // Else, if the item is already in the array, remove it
-                            seletedItems.remove(Integer.valueOf(indexSelected));
-                        }
-                    }
-                })
-                // Set the action buttons
-                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int id) {
-                        if (seletedItems.contains(0)) {
-                            soundDetection = true;
-                        } else {
-                            soundDetection = false;
-                        }
-                        if (seletedItems.contains(1)) {
-                            soundCountdown = true;
-                        } else {
-                            soundCountdown = false;
-                        }
-                        if (seletedItems.contains(2)) {
-                            soundShutter = true;
-                        } else {
-                            soundShutter = false;
-                        }
+                AlertDialog.Builder builder = new AlertDialog.Builder(context);
+                builder.setTitle("Select sounds");
+                boolean[] selected = {soundDetection,soundCountdown,soundShutter};
+                builder.setMultiChoiceItems(items, selected,
+                        new DialogInterface.OnMultiChoiceClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int indexSelected,
+                                                boolean isChecked) {
+                                if (isChecked) {
+                                    // If the user checked the item, add it to the selected items
+                                    seletedItems.add(indexSelected);
+                                } else if (seletedItems.contains(indexSelected)) {
+                                    // Else, if the item is already in the array, remove it
+                                    seletedItems.remove(Integer.valueOf(indexSelected));
+                                }
+                            }
+                        })
+                        // Set the action buttons
+                        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int id) {
+                                if (seletedItems.contains(0)) {
+                                    soundDetection = true;
+                                } else {
+                                    soundDetection = false;
+                                }
+                                if (seletedItems.contains(1)) {
+                                    soundCountdown = true;
+                                } else {
+                                    soundCountdown = false;
+                                }
+                                if (seletedItems.contains(2)) {
+                                    soundShutter = true;
+                                } else {
+                                    soundShutter = false;
+                                }
 
-                    }
-                })
-                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int id) {
-                        //  Your code when user clicked on Cancel
+                            }
+                        })
+                        .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int id) {
+                                //  Your code when user clicked on Cancel
 
-                    }
-                });
+                            }
+                        });
 
                 dialog = builder.create();//AlertDialog dialog; create like this outside onClick
                 dialog.show();
@@ -458,7 +486,9 @@ public class MainActivity extends Activity implements  AutoFocusCallback{
                 else {
                     cameraOrientation = Camera.CameraInfo.CAMERA_FACING_BACK;
                 }
-                onCreate(new Bundle());
+                Bundle state = new Bundle();
+                state.putInt("numberOfImages",3);
+                onCreate(state);
 
 
 
@@ -469,26 +499,38 @@ public class MainActivity extends Activity implements  AutoFocusCallback{
 
 
         tvCountDown.setOnClickListener(new View.OnClickListener() {
-                    @Override
+            @Override
             public void onClick(View v) {
                 detectionStarted = true;
                 tvCountDown.setText("");
-                    }
+            }
         });
 
         ivPhoto.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 if (mediaFile!= null){
-                    Intent i=new Intent();
-                    i.setAction(Intent.ACTION_VIEW);
-                    i.setDataAndType(Uri.fromFile(mediaFile), "image/*");
-                    startActivity(i);
+                    Intent intent=new Intent();
+                    intent.setAction(Intent.ACTION_VIEW);
+                    intent.setDataAndType(Uri.fromFile(mediaFile), "image/*");
+
+                    PackageManager pm = getPackageManager();
+                    List<ResolveInfo> resInfo = pm.queryIntentActivities(intent, 0);
+                    for (ResolveInfo info:resInfo){
+                        Log.i(TAG,info.toString());
+                    }
+                    for (int i = 0; i < resInfo.size(); i++) {
+                        // Extract the label, append it, and repackage it in a LabeledIntent
+                        ResolveInfo ri = resInfo.get(i);
+                        String packageName = ri.activityInfo.packageName;
+                        intent.setPackage(packageName);
+                    }
+                    startActivity(intent);
                 } else {
                     showToast("No images yet");
                 }
 
-             //   startActivity(new Intent("com.android.gallery3d"));
-               // notifySystemWithImage(new File(Environment.getExternalStorageDirectory().toString()));
+                //   startActivity(new Intent("com.android.gallery3d"));
+                // notifySystemWithImage(new File(Environment.getExternalStorageDirectory().toString()));
                 /*Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(
                         "content://media/internal/images/media"));
                 File mediaStorageDir = new File(
@@ -509,6 +551,17 @@ public class MainActivity extends Activity implements  AutoFocusCallback{
 
 
 
+    }
+
+    @Override
+    public void onResume() {
+        Log.e(TAG, "[MainActivity] onResume");
+        super.onResume();  // Always call the superclass method first
+    }
+
+    @Override public void onPause() {
+        Log.e(TAG, "[MainActivity] onPause");
+        super.onPause();
     }
 
 
@@ -607,43 +660,43 @@ public class MainActivity extends Activity implements  AutoFocusCallback{
     }
 
     public void setCameraDisplayOrientation(Activity activity,
-                                                   int cameraId, android.hardware.Camera camera) {
+                                            int cameraId, android.hardware.Camera camera) {
         Log.i(TAG,"orientation iside rotation method= " + deviceOrientation);
 
 
 
-            CameraInfo info =
-                    new CameraInfo();
+        CameraInfo info =
+                new CameraInfo();
 
-            getCameraInfo(cameraId, info);
+        getCameraInfo(cameraId, info);
 
-            int rotation = activity.getWindowManager().getDefaultDisplay().getRotation();
-            int degrees = 0;
+        int rotation = activity.getWindowManager().getDefaultDisplay().getRotation();
+        int degrees = 0;
 
-            switch (rotation) {
-                case Surface.ROTATION_0:
-                    degrees = 0;
-                    break;
-                case Surface.ROTATION_90:
-                    degrees = 90;
-                    break;
-                case Surface.ROTATION_180:
-                    degrees = 180;
-                    break;
-                case Surface.ROTATION_270:
-                    degrees = 270;
-                    break;
-            }
+        switch (rotation) {
+            case Surface.ROTATION_0:
+                degrees = 0;
+                break;
+            case Surface.ROTATION_90:
+                degrees = 90;
+                break;
+            case Surface.ROTATION_180:
+                degrees = 180;
+                break;
+            case Surface.ROTATION_270:
+                degrees = 270;
+                break;
+        }
 
-            int result;
-            if (info.facing == CameraInfo.CAMERA_FACING_FRONT) {
-                result = (info.orientation + degrees) % 360;
-                result = (360 - result) % 360;  // compensate the mirror
-            } else {  // back-facing
-                result = (info.orientation - degrees + 360) % 360;
-            }
+        int result;
+        if (info.facing == CameraInfo.CAMERA_FACING_FRONT) {
+            result = (info.orientation + degrees) % 360;
+            result = (360 - result) % 360;  // compensate the mirror
+        } else {  // back-facing
+            result = (info.orientation - degrees + 360) % 360;
+        }
 
-            camera.setDisplayOrientation(result);
+        camera.setDisplayOrientation(result);
 
 
     }
@@ -712,7 +765,7 @@ public class MainActivity extends Activity implements  AutoFocusCallback{
                 .format(new Date());
 
         mediaFile = new File(mediaStorageDir.getPath() + File.separator
-               // + "adrianfotka_" +timeStamp + ".jpg");
+                // + "adrianfotka_" +timeStamp + ".jpg");
                 + "adrianfotka.jpg");
 
         storedImageFile = mediaFile;
