@@ -6,6 +6,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
@@ -112,6 +113,8 @@ public class MainActivity extends Activity implements  AutoFocusCallback{
     Activity thisActivity = this;
     private Uri ImageUri;
     private File mediaFile = null;
+    SharedPreferences.Editor editor;
+    SharedPreferences prefs;
 
     public final int RATIO = 8;
 
@@ -226,6 +229,9 @@ public class MainActivity extends Activity implements  AutoFocusCallback{
 
         Typeface face = Typeface.createFromAsset(getAssets(),
                 "Aller_Bd.ttf");
+
+        prefs = getSharedPreferences("selphy", 0);
+        editor = prefs.edit();
 
 
 
@@ -508,10 +514,13 @@ public class MainActivity extends Activity implements  AutoFocusCallback{
 
         ivPhoto.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                if (mediaFile!= null){
+                String lastPhoto = prefs.getString("lastPhoto","");
+                if (!lastPhoto.equals("")){
                     Intent intent=new Intent();
                     intent.setAction(Intent.ACTION_VIEW);
-                    intent.setDataAndType(Uri.fromFile(mediaFile), "image/*");
+
+                    //intent.setDataAndType(Uri.fromFile(mediaFile), "image/*");
+                    intent.setDataAndType(Uri.fromFile(new File(lastPhoto)), "image/*");
 
                     PackageManager pm = getPackageManager();
                     List<ResolveInfo> resInfo = pm.queryIntentActivities(intent, 0);
@@ -765,8 +774,12 @@ public class MainActivity extends Activity implements  AutoFocusCallback{
                 .format(new Date());
 
         mediaFile = new File(mediaStorageDir.getPath() + File.separator
-                // + "adrianfotka_" +timeStamp + ".jpg");
-                + "adrianfotka.jpg");
+                + "selphy_" +timeStamp + ".jpg");
+
+        editor.putString("lastPhoto",mediaFile.getAbsolutePath());
+        editor.apply();
+        Log.i(TAG, "media: " + mediaFile.getAbsolutePath());
+
 
         storedImageFile = mediaFile;
         return mediaFile;

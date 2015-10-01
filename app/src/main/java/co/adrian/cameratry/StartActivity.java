@@ -28,8 +28,9 @@ public class StartActivity extends Activity {
         SharedPreferences prefs = getSharedPreferences("selphy", 0);
         SharedPreferences.Editor editor = prefs.edit();
         Intent intent;
-        Log.i(TAG, "ok");
-        if (prefs.getBoolean("isInitialAppLaunch", false))
+        String first = prefs.getString("first","");
+
+        if (first.equals("isFirst"))
         {
             Log.i(TAG, "not initial");
             intent = new Intent(this, MainActivity.class);
@@ -39,7 +40,8 @@ public class StartActivity extends Activity {
         {
             Log.i(TAG, "initial ");
             //First Time App launched, you are putting isInitialAppLaunch to false and calling create password activity.
-            editor.putBoolean("isInitialAppLaunch", false);
+            editor.putString("first","isFirst");
+            editor.apply();
             intent = new Intent(this, ShowInfoActivity.class);
             startActivity(intent);
         }
