@@ -1,8 +1,10 @@
 package co.adrian.cameratry;
 
 import android.content.Context;
+import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.YuvImage;
 import android.hardware.Camera;
@@ -12,6 +14,7 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
 import org.opencv.android.Utils;
+import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfRect;
@@ -30,17 +33,15 @@ public class CameraPreview extends SurfaceView implements
 
     public static final String TAG = "logIspis";
 
-    private SurfaceHolder mSurfaceHolder;
     private Camera mCamera;
-    private Paint textPaint = new Paint();
     private CascadeClassifier faceDetector = null;
-    private MainActivity mActivity = null;
+    private MainActivity mActivity;
     private DrawingSurface drawSurface;
     private boolean processInProgress = false;
     private Bitmap b;
-    private Mat mat;
     private MatOfRect faceDetections;
     private ProcessPreviewDataTask processingTask;
+    private int orient;
 
 
     // Constructor that obtains context and camera
@@ -49,14 +50,16 @@ public class CameraPreview extends SurfaceView implements
 
         super(context);
         this.mCamera = camera;
-        this.mSurfaceHolder = this.getHolder();
-        this.mSurfaceHolder.addCallback(this);
-        this.mSurfaceHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
+        SurfaceHolder mSurfaceHolder = this.getHolder();
+        mSurfaceHolder.addCallback(this);
+        mSurfaceHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
         this.drawSurface = drawSurface;
+        Paint textPaint = new Paint();
         textPaint.setARGB(255, 200, 0, 0);
         textPaint.setTextSize(60);
 
 
+        mActivity = null;
         try{
             mActivity = (MainActivity) context;
             faceDetector = mActivity.faceDetector;
@@ -103,11 +106,8 @@ public class CameraPreview extends SurfaceView implements
 
         try {
 
-            mCamera.setPreviewCallback(new Camera.PreviewCallback() {
 
-                Bitmap b = null;
-                Mat mat = null;
-                MatOfRect faceDetections;
+            mCamera.setPreviewCallback(new Camera.PreviewCallback() {
 
                 @Override
                 public void onPreviewFrame(byte[] data, Camera camera) {
@@ -115,11 +115,11 @@ public class CameraPreview extends SurfaceView implements
 
 
                         if (mActivity.isOver && !processInProgress) {
-                            if (mActivity.detectionStarted) {
-                                int numberOfPictures = mActivity.numberOfImages;
-                                try {
+                            if (MainActivity.detectionStarted) {
 
-                                    processingTask = new ProcessPreviewDataTask(camera, data, mat, faceDetections, drawSurface, b, numberOfPictures);
+                                try {
+                                    orient = getResources().getConfiguration().orientation;
+                                    processingTask = new ProcessPreviewDataTask(camera, data);
                                     processingTask.execute();
 
                                 } catch (Exception e) {
@@ -130,14 +130,10 @@ public class CameraPreview extends SurfaceView implements
                             }
                         }
 
-                    } catch(OutOfMemoryError e){
-                        Log.e(TAG,"[CameraPreview] OutOfMemoryError occured during image processing");
+                    } catch (OutOfMemoryError e) {
+                        Log.e(TAG, "[CameraPreview] OutOfMemoryError occured during image processing");
                     }
                 }
-
-
-
-
             });
 
             mCamera.setPreviewDisplay(surfaceHolder);
@@ -156,14 +152,11 @@ public class CameraPreview extends SurfaceView implements
 
         Camera camera;
         byte[] data;
-        DrawingSurface drawSurface;
-        int numberOfPictures;
+        int numberOfPictures = MainActivity.numberOfImages;
 
-        public ProcessPreviewDataTask(Camera camera, byte[] data, Mat mat, MatOfRect faceDetections, DrawingSurface drawSurface, Bitmap b, int numberOfPictures){
+        public ProcessPreviewDataTask(Camera camera, byte[] data){
             this.camera = camera;
             this.data = data;
-            this.drawSurface = drawSurface;
-            this.numberOfPictures = numberOfPictures;
         }
 
         @Override
@@ -182,8 +175,13 @@ public class CameraPreview extends SurfaceView implements
             byte[] bytes = out.toByteArray();
             b = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
 
-            mat = new Mat(b.getWidth(), b.getHeight(), CvType.CV_8UC1);
+            Mat mat = new Mat(b.getWidth(), b.getHeight(), CvType.CV_8UC1);
             Utils.bitmapToMat(b, mat);
+
+            if (orient == Configuration.ORIENTATION_PORTRAIT){
+                Core.transpose(mat, mat);
+                Core.flip(mat, mat, 1);
+            }
             faceDetections = new MatOfRect();
 
 
@@ -216,7 +214,8 @@ public class CameraPreview extends SurfaceView implements
                 android.graphics.Rect focusRect = null;
 
                 for (Rect rect : faceDetections.toArray()) {
-                    drawSurface.drawFaces(rect, b.getWidth(), b.getHeight());
+                    drawSurface.drawFaces(rect, b.getWidth(), b.getHeight(),orient);
+
                     focusRect = new android.graphics.Rect(rect.x, rect.y, rect.x + rect.width, rect.y + rect.height);
                 }
 

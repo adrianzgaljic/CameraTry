@@ -1,6 +1,7 @@
 package co.adrian.cameratry;
 
 import android.content.Context;
+import android.content.res.Configuration;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -68,7 +69,7 @@ public class DrawingSurface extends SurfaceView implements SurfaceHolder.Callbac
 
 
 
-    public void drawFaces(Rect rect, int width, int height) {
+    public void drawFaces(Rect rect, int width, int height, int orient) {
 
         Log.i(TAG, "[DrawingSurface] Trying to draw...");
 
@@ -76,10 +77,20 @@ public class DrawingSurface extends SurfaceView implements SurfaceHolder.Callbac
         float ratioY;
 
         Canvas canvas = mHolder.lockCanvas();
-        ratioX = (float)canvas.getWidth()/(float)width;
-        ratioY = (float)canvas.getHeight()/(float)height;
 
-        canvas.drawRect(rect.x*ratioX, rect.y*ratioY, (rect.x + rect.width)*ratioX, (rect.y + rect.height)*ratioY, paint);
+        if (orient == Configuration.ORIENTATION_PORTRAIT){
+            ratioX = (float)canvas.getHeight()/(float)width;
+            ratioY = (float)canvas.getWidth()/(float)height;
+        } else  {
+            ratioX = (float)canvas.getWidth()/(float)width;
+            ratioY = (float)canvas.getHeight()/(float)height;
+        }
+
+
+
+       // canvas.drawRect(rect.x*ratioX, rect.y*ratioY, (rect.x + rect.width)*ratioX, (rect.y + rect.height)*ratioY, paint);
+        canvas.drawRect((float)(rect.tl().x)*ratioX, (float)(rect.tl().y)*ratioY, ((float)(rect.tl().x)+ rect.width)*ratioX, ((float)(rect.tl().y) + rect.height)*ratioY, paint);
+
         mHolder.unlockCanvasAndPost(canvas);
 
     }

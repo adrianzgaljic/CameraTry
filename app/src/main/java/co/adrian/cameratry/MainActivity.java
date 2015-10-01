@@ -91,7 +91,7 @@ public class MainActivity extends Activity implements  AutoFocusCallback{
     public int picturesTaken = 0;
     public boolean locked = false;
     public boolean isOver =true;
-    public static boolean detectionStarted = false;
+    public static boolean detectionStarted;
     public static boolean soundDetection = false;
     public static boolean soundCountdown = false;
     public static boolean soundShutter = false;
