@@ -4,22 +4,22 @@
 <animation-list xmlns:android="http://schemas.android.com/apk/res/android"
 android:oneshot="false">
 
-    <item android:drawable="@drawable/start" android:duration="100" />
-    <item android:drawable="@drawable/start2" android:duration="100" />
-    <item android:drawable="@drawable/start3" android:duration="100" />
-    <item android:drawable="@drawable/start4" android:duration="100" />
-    <item android:drawable="@drawable/start5" android:duration="100" />
-    <item android:drawable="@drawable/start6" android:duration="100" />
-    <item android:drawable="@drawable/start7" android:duration="100" />
-    <item android:drawable="@drawable/start6" android:duration="100" />
-    <item android:drawable="@drawable/start5" android:duration="100" />
-    <item android:drawable="@drawable/start4" android:duration="100" />
-    <item android:drawable="@drawable/start3" android:duration="100" />
-    <item android:drawable="@drawable/start2" android:duration="100" />
-    <item android:drawable="@drawable/start" android:duration="100" />
-    <item android:drawable="@drawable/start8" android:duration="100" />
+    <item android:drawable="@drawable/start" android:duration="50" />
+    <item android:drawable="@drawable/start2" android:duration="50" />
+    <item android:drawable="@drawable/start3" android:duration="50" />
+    <item android:drawable="@drawable/start4" android:duration="50" />
+    <item android:drawable="@drawable/start5" android:duration="50" />
+    <item android:drawable="@drawable/start6" android:duration="50" />
+    <item android:drawable="@drawable/start7" android:duration="50" />
+    <item android:drawable="@drawable/start6" android:duration="50" />
+    <item android:drawable="@drawable/start5" android:duration="50" />
+    <item android:drawable="@drawable/start4" android:duration="50" />
+    <item android:drawable="@drawable/start3" android:duration="50" />
+    <item android:drawable="@drawable/start2" android:duration="50" />
+    <item android:drawable="@drawable/start" android:duration="50" />
+    <item android:drawable="@drawable/start8" android:duration="50" />
 
-    <item android:drawable="@drawable/start8" android:duration="100" />
+    <item android:drawable="@drawable/start8" android:duration="50" />
 
 
 

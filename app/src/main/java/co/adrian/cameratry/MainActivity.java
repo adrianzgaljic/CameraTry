@@ -81,7 +81,7 @@ public class MainActivity extends Activity implements  AutoFocusCallback{
     private CameraPreview mCameraPreview;
     public static final String TAG = "logIspis";
 
-    ImageView lastPhoto;
+   // ImageView lastPhoto;
     public TextView tvCountDown;
     public CascadeClassifier faceDetector = null;
     public static String flash = FLASH_MODE_OFF;
@@ -164,7 +164,7 @@ public class MainActivity extends Activity implements  AutoFocusCallback{
         soundIdCountdown = soundPool.load(context, R.raw.countdown_sound, 1);
         soundIdShutter = soundPool.load(context, R.raw.shutter_sound, 1);
 
-        lastPhoto = (ImageView) findViewById(R.id.lastPhoto);
+        //lastPhoto = (ImageView) findViewById(R.id.lastPhoto);
         //mCamera = open(cameraOrientation);
         mCamera = open(cameraOrientation);
         tvCountDown = (TextView) findViewById(R.id.textView);
@@ -194,7 +194,7 @@ public class MainActivity extends Activity implements  AutoFocusCallback{
         layoutDown = (LinearLayout)findViewById(R.id.linearLayoutDown);
         //switcher = (ViewSwitcher) findViewById(R.id.profileSwitcher);
 
-        ivPhoto = (ImageView) findViewById(R.id.lastPhoto);
+
         if (numberOfImages==0){
             numberOfImages=1;
         }
@@ -233,6 +233,9 @@ public class MainActivity extends Activity implements  AutoFocusCallback{
         prefs = getSharedPreferences("selphy", 0);
         editor = prefs.edit();
 
+        ivPhoto = (ImageView) findViewById(R.id.lastPhoto);
+        Bitmap image = BitmapFactory.decodeFile(prefs.getString("lastPhoto",null));
+        ivPhoto.setImageBitmap(getRoundedShape(image));
 
 
 
@@ -741,7 +744,7 @@ public class MainActivity extends Activity implements  AutoFocusCallback{
                     options.inPreferredConfig = Bitmap.Config.ARGB_8888;
 
                     Bitmap image = BitmapFactory.decodeByteArray(data, 0, data.length, options);
-                    lastPhoto.setImageBitmap(getRoundedShape(image));
+                    ivPhoto.setImageBitmap(getRoundedShape(image));
                     ContentValues values = new ContentValues();
 
                     values.put(MediaStore.Images.Media.DATE_TAKEN, System.currentTimeMillis());
@@ -944,26 +947,31 @@ public class MainActivity extends Activity implements  AutoFocusCallback{
     }
 
     public Bitmap getRoundedShape(Bitmap scaleBitmapImage) {
-        int targetWidth = 50;
-        int targetHeight = 50;
-        Bitmap targetBitmap = Bitmap.createBitmap(targetWidth,
-                targetHeight,Bitmap.Config.ARGB_8888);
+        if (scaleBitmapImage!=null){
+            int targetWidth = 50;
+            int targetHeight = 50;
+            Bitmap targetBitmap = Bitmap.createBitmap(targetWidth,
+                    targetHeight,Bitmap.Config.ARGB_8888);
 
-        Canvas canvas = new Canvas(targetBitmap);
-        Path path = new Path();
-        path.addCircle(((float) targetWidth - 1) / 2,
-                ((float) targetHeight - 1) / 2,
-                (Math.min(((float) targetWidth),
-                        ((float) targetHeight)) / 2),
-                Path.Direction.CCW);
+            Canvas canvas = new Canvas(targetBitmap);
+            Path path = new Path();
+            path.addCircle(((float) targetWidth - 1) / 2,
+                    ((float) targetHeight - 1) / 2,
+                    (Math.min(((float) targetWidth),
+                            ((float) targetHeight)) / 2),
+                    Path.Direction.CCW);
 
-        canvas.clipPath(path);
-        Bitmap sourceBitmap = scaleBitmapImage;
-        canvas.drawBitmap(sourceBitmap,
-                new Rect(0, 0, sourceBitmap.getWidth(),
-                        sourceBitmap.getHeight()),
-                new Rect(0, 0, targetWidth, targetHeight), null);
-        return targetBitmap;
+            canvas.clipPath(path);
+            Bitmap sourceBitmap = scaleBitmapImage;
+            canvas.drawBitmap(sourceBitmap,
+                    new Rect(0, 0, sourceBitmap.getWidth(),
+                            sourceBitmap.getHeight()),
+                    new Rect(0, 0, targetWidth, targetHeight), null);
+            return targetBitmap;
+        } else {
+            return null;
+        }
+
     }
 
     public void showToast(String text){

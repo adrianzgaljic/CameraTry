@@ -20,9 +20,7 @@ import org.opencv.core.Size;
 import org.opencv.objdetect.CascadeClassifier;
 
 import java.io.ByteArrayOutputStream;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+
 
 
 
@@ -36,15 +34,13 @@ public class CameraPreview extends SurfaceView implements
     private Camera mCamera;
     private Paint textPaint = new Paint();
     private CascadeClassifier faceDetector = null;
-
     private MainActivity mActivity = null;
     private DrawingSurface drawSurface;
-    private List<Rect> listOfFaces;
-    boolean processInProgress = false;
-    Bitmap b;
-    Mat mat;
-    MatOfRect faceDetections;
-    ProcessPreviewDataTask processingTask;
+    private boolean processInProgress = false;
+    private Bitmap b;
+    private Mat mat;
+    private MatOfRect faceDetections;
+    private ProcessPreviewDataTask processingTask;
 
 
     // Constructor that obtains context and camera
@@ -59,8 +55,6 @@ public class CameraPreview extends SurfaceView implements
         this.drawSurface = drawSurface;
         textPaint.setARGB(255, 200, 0, 0);
         textPaint.setTextSize(60);
-
-        listOfFaces = new ArrayList<Rect>();
 
 
         try{
@@ -129,7 +123,7 @@ public class CameraPreview extends SurfaceView implements
                                     processingTask.execute();
 
                                 } catch (Exception e) {
-                                    Log.e(TAG, "Error executing AsynTask " + e.toString());
+                                    Log.e(TAG, "[CameraPreview] Error executing AsynTask " + e.toString());
                                 }
                             } else {
                                 mActivity.btnStartDetection.setBackgroundResource(R.drawable.start);
@@ -137,7 +131,7 @@ public class CameraPreview extends SurfaceView implements
                         }
 
                     } catch(OutOfMemoryError e){
-                        Log.e(TAG,"OutOfMemoryError occured during image processing");
+                        Log.e(TAG,"[CameraPreview] OutOfMemoryError occured during image processing");
                     }
                 }
 
@@ -151,20 +145,13 @@ public class CameraPreview extends SurfaceView implements
 
 
         } catch (Exception e) {
-            Log.i(TAG, "GRESKA KOJA SE TRAZI");
+            Log.i(TAG, "[CameraPreview] Error setting preview callback");
         }
 
     }
 
 
-
-
-
-
-
-
-
-    public  class ProcessPreviewDataTask
+ public  class ProcessPreviewDataTask
             extends AsyncTask<Void, Void, Boolean> {
 
         Camera camera;
@@ -206,97 +193,63 @@ public class CameraPreview extends SurfaceView implements
                 faceDetector.detectMultiScale(mat, faceDetections);
                 faceDetector.detectMultiScale(mat, faceDetections,1.1,4,1,new Size(50,50),new Size(500,500));
             } catch (Exception e) {
-                Log.i(TAG, "facedetection " + e);
+                Log.i(TAG, "[CameraPreview] Error during face detection" + e);
             }
-
-            // Log.e(TAG,faceDetector.toString());
-
-            Log.i(TAG, "drawsurface=" + drawSurface);
-
-
-
-
 
             return true;
         }
 
         @Override
         protected void onPostExecute(Boolean result){
-            Log.i(TAG, "running onPostExecute");
+            Log.i(TAG, "[CameraPreview] running onPostExecute");
 
             if (faceDetections.toArray().length > 0 && mActivity.picturesTaken < numberOfPictures && !mActivity.locked) {
 
                 try {
                     drawSurface.playSound();
-                    listOfFaces.clear();
                     drawSurface.clearCanvas();
 
-
                 } catch (Exception e) {
-                    Log.i(TAG, "POKUSAJ NEUSPIO " + e);
+                    Log.i(TAG, "[CameraPreview]  First block error." + e);
                 }
+
                 android.graphics.Rect focusRect = null;
 
                 for (Rect rect : faceDetections.toArray()) {
-
-                    Log.v(TAG, rect.toString());
                     drawSurface.drawFaces(rect, b.getWidth(), b.getHeight());
                     focusRect = new android.graphics.Rect(rect.x, rect.y, rect.x + rect.width, rect.y + rect.height);
-                    //addToListOfFaces(rect);
                 }
 
                 try {
                     faceDetections.empty();
                     mActivity.takePicture(focusRect);
-
-
                 } catch (Exception e) {
-                    Log.i(TAG, "POKUSAJ NEUSPIO 2 " + e);
-                }
-
-
-                for (Rect rect : listOfFaces) {
-                    drawSurface.drawFaces(rect, b.getWidth(), b.getHeight());
-                    android.graphics.Rect rectan = new android.graphics.Rect(rect.x, rect.y, rect.x + rect.width, rect.y + rect.height);
-                    try {
-                        mActivity.takePicture(rectan);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
+                    Log.i(TAG, "[CameraPreview] Error:empty face det. take picture. " + e);
                 }
 
 
             } else {
-                Log.i(TAG, "DRAW SURFACE JEBEMU" + drawSurface);
+
 
                 try {
 
                     drawSurface.clearCanvas();
 
-
                 } catch (Exception e) {
-                    Log.i(TAG, "zapelo " + e);
+                    Log.i(TAG, "[CameraPreview] Clear canvas error. " + e);
                 }
-
 
             }
 
             if (mActivity.picturesTaken >= numberOfPictures) {
                 mActivity.picturesTaken = 0;
-                mActivity.detectionStarted = false;
+                MainActivity.detectionStarted = false;
 
             }
             b.recycle();
-
             b=null;
             processInProgress = false;
-            // set pixels once processing is done
-
-
-
         }
-
-
     }
 
 }
