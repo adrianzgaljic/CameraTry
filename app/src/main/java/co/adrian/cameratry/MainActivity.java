@@ -14,15 +14,12 @@ import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Path;
 import android.graphics.PixelFormat;
 import android.graphics.Rect;
-import android.graphics.Typeface;
 import android.graphics.drawable.AnimationDrawable;
 import android.hardware.Camera;
 import android.media.AudioManager;
-import android.media.MediaScannerConnection;
 import android.media.SoundPool;
 import android.net.Uri;
 import android.os.Bundle;
@@ -30,22 +27,16 @@ import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.Display;
-import android.view.LayoutInflater;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.View;
 import android.view.ViewGroup;
-import android.webkit.MimeTypeMap;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import com.nhaarman.supertooltips.ToolTip;
-import com.nhaarman.supertooltips.ToolTipRelativeLayout;
-import com.nhaarman.supertooltips.ToolTipView;
 
 import org.opencv.objdetect.CascadeClassifier;
 
@@ -78,48 +69,34 @@ public class MainActivity extends Activity implements  AutoFocusCallback{
 
     }
 
-    private CameraPreview mCameraPreview;
     public static final String TAG = "logIspis";
 
-   // ImageView lastPhoto;
-    public TextView tvCountDown;
-    public CascadeClassifier faceDetector = null;
-    public static String flash = FLASH_MODE_OFF;
-    final Context context = this;
-    public static int timerTime = 0;
-    public static int numberOfImages;
-    public int picturesTaken = 0;
-    public boolean locked = false;
-    public boolean isOver =true;
-    public static boolean detectionStarted;
-    public static boolean soundDetection = false;
-    public static boolean soundCountdown = false;
-    public static boolean soundShutter = false;
-    SoundPool soundPool;
-    int soundIdCountdown;
-    int soundIdShutter;
-    int cameraOrientation = CameraInfo.CAMERA_FACING_BACK;
-    int deviceOrientation = Configuration.ORIENTATION_PORTRAIT;
-    Button flashButton;
-    Button timerButton;
-    Button imagesNumberButton;
-    Button soundButton;
-    Button cameraChangeButton;
-    Button btnStartDetection;
-    LinearLayout layoutDown;
-    ImageView ivPhoto;
-    File storedImageFile;
-    FrameLayout preview;
-    Activity thisActivity = this;
-    private Uri ImageUri;
-    private File mediaFile = null;
-    SharedPreferences.Editor editor;
-    SharedPreferences prefs;
+    private TextView tvCountDown;
+    protected CascadeClassifier faceDetector = null;
+    private static String flash = FLASH_MODE_OFF;
+    private final Context context = this;
+    private static int timerTime = 0;
+    protected static int numberOfImages;
+    protected int picturesTaken = 0;
+    protected boolean locked = false;
+    protected boolean isOver =true;
+    protected static boolean detectionStarted;
+    protected static boolean soundDetection = false;
+    private static boolean soundCountdown = false;
+    private static boolean soundShutter = false;
+    private SoundPool soundPool;
+    private int soundIdCountdown;
+    private int soundIdShutter;
+    private int cameraOrientation = CameraInfo.CAMERA_FACING_BACK;
+    private Button flashButton;
+    private Button timerButton;
+    private Button imagesNumberButton;
+    protected Button btnStartDetection;
+    private ImageView ivPhoto;
+    private SharedPreferences.Editor editor;
+    private SharedPreferences prefs;
 
     public final int RATIO = 8;
-
-
-
 
     public AutoFocusCallback thisClass = this;
     DrawingSurface drawingSurface;
@@ -150,9 +127,9 @@ public class MainActivity extends Activity implements  AutoFocusCallback{
             is.close();
             os.close();
             faceDetector = new CascadeClassifier(mCascadeFile.getAbsolutePath());
-            Log.i(TAG,"CASCADE ="+faceDetector);
+            Log.i(TAG,"[MainActivity] classifier successfully loaded: "+faceDetector);
         } catch (Exception e) {
-            Log.e(TAG, "Error loading cascade ", e);
+            Log.e(TAG, "[MainActivity] Error loading classifier: ", e);
         }
 
 
@@ -164,15 +141,14 @@ public class MainActivity extends Activity implements  AutoFocusCallback{
         soundIdCountdown = soundPool.load(context, R.raw.countdown_sound, 1);
         soundIdShutter = soundPool.load(context, R.raw.shutter_sound, 1);
 
-        //lastPhoto = (ImageView) findViewById(R.id.lastPhoto);
-        //mCamera = open(cameraOrientation);
         mCamera = open(cameraOrientation);
-        tvCountDown = (TextView) findViewById(R.id.textView);
-        // tvCountDown.setTextSize(20);
-        tvCountDown.setText("");
         setCameraDisplayOrientation(this, 0, mCamera);
 
-        preview = (FrameLayout) findViewById(R.id.camera_preview);
+        tvCountDown = (TextView) findViewById(R.id.textView);
+        tvCountDown.setText("");
+
+
+
         final FrameLayout drawingSurfaceLayout = (FrameLayout) findViewById(R.id.drawing_surface);
         drawingSurface = new DrawingSurface(this);
         drawingSurface.setZOrderOnTop(true);
@@ -181,18 +157,16 @@ public class MainActivity extends Activity implements  AutoFocusCallback{
         drawingSurfaceLayout.removeAllViews();
         drawingSurfaceLayout.addView(drawingSurface);
 
-        mCameraPreview = new CameraPreview(this,  mCamera,drawingSurface);
+        CameraPreview mCameraPreview = new CameraPreview(this, mCamera, drawingSurface);
+        FrameLayout preview = (FrameLayout) findViewById(R.id.camera_preview);
         preview.addView(mCameraPreview);
 
         flashButton = (Button) findViewById(R.id.button_flash);
         timerButton = (Button) findViewById(R.id.button_timer);
         imagesNumberButton = (Button) findViewById(R.id.button_number_of_images);
-        soundButton = (Button) findViewById(R.id.button_sound);
-        cameraChangeButton = (Button) findViewById(R.id.button_change_camera);
+        Button soundButton = (Button) findViewById(R.id.button_sound);
+        Button cameraChangeButton = (Button) findViewById(R.id.button_change_camera);
         btnStartDetection = (Button) findViewById(R.id.button);
-
-        layoutDown = (LinearLayout)findViewById(R.id.linearLayoutDown);
-        //switcher = (ViewSwitcher) findViewById(R.id.profileSwitcher);
 
 
         if (numberOfImages==0){
@@ -211,6 +185,7 @@ public class MainActivity extends Activity implements  AutoFocusCallback{
                 timerButton.setBackgroundResource(R.drawable.timer_five_new);
                 break;
         }
+
         if (flash.equals(FLASH_MODE_OFF)){
             flashButton.setBackgroundResource(R.drawable.flash_off_new);
         } else {
@@ -224,96 +199,78 @@ public class MainActivity extends Activity implements  AutoFocusCallback{
                 new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,
                         LinearLayout.LayoutParams.WRAP_CONTENT);
         imageView.setLayoutParams(vp);
-        //// TODO: 29/09/15  
         imageView.setImageResource(R.drawable.number_of_images_new);
-
-        Typeface face = Typeface.createFromAsset(getAssets(),
-                "Aller_Bd.ttf");
 
         prefs = getSharedPreferences("selphy", 0);
         editor = prefs.edit();
-
         ivPhoto = (ImageView) findViewById(R.id.lastPhoto);
         Bitmap image = BitmapFactory.decodeFile(prefs.getString("lastPhoto",null));
         ivPhoto.setImageBitmap(getRoundedShape(image));
-
-
-
         int orient = getResources().getConfiguration().orientation;
-        deviceOrientation = orient;
-        //RelativeLayout.LayoutParams params = null;
-        View view_instance;
+
+        View viewInstance;
         LinearLayout myll;
         ViewGroup.LayoutParams params;
-        //final float scale = context.getResources().getDisplayMetrics().density;
-        //int pixels = (int) (70 * scale + 0.5f);
+
         Display display = getWindowManager().getDefaultDisplay();
-        Log.i(TAG,"ONCREATE");
+
         switch(orient) {
 
             case Configuration.ORIENTATION_LANDSCAPE:
-                //setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
-                view_instance = (View)findViewById(R.id.linearLayoutDown);
-                view_instance.setBackgroundResource(R.drawable.down_vertical);
-                params=view_instance.getLayoutParams();
-                //params.width= pixels;
-                params.width = display.getWidth()/8;
+
+                viewInstance = findViewById(R.id.linearLayoutDown);
+                viewInstance.setBackgroundResource(R.drawable.down_vertical);
+                params=viewInstance.getLayoutParams();
+                params.width = display.getWidth()/RATIO;
                 params.height= ViewGroup.LayoutParams.MATCH_PARENT;
-                myll = (LinearLayout) findViewById(R.id.linearLayoutDown);
+                myll = (LinearLayout)viewInstance;
                 myll.setOrientation(LinearLayout.VERTICAL);
-                view_instance.setLayoutParams(params);
+                viewInstance.setLayoutParams(params);
 
 
-                view_instance = (View)findViewById(R.id.linearLayout);
-                view_instance.setBackgroundResource(R.drawable.up_vertical);
-                params=view_instance.getLayoutParams();
-                //params.width= pixels;
-                params.width = display.getWidth()/8;
+                viewInstance = findViewById(R.id.linearLayoutUp);
+                viewInstance.setBackgroundResource(R.drawable.up_vertical);
+                params=viewInstance.getLayoutParams();
+                params.width = display.getWidth()/RATIO;
                 params.height= ViewGroup.LayoutParams.MATCH_PARENT;
-                myll = (LinearLayout) findViewById(R.id.linearLayout);
+                myll = (LinearLayout)viewInstance;
                 myll.setOrientation(LinearLayout.VERTICAL);
-                view_instance.setLayoutParams(params);
+                viewInstance.setLayoutParams(params);
 
                 params = preview.getLayoutParams();
-                params.width = display.getWidth()*6/8;
+                params.width = display.getWidth()*(RATIO-2)/RATIO;
                 params.height = display.getHeight();
                 preview.setLayoutParams(params);
-
-
-
-                Log.i(TAG, "landscape orientation");
                 break;
-            case Configuration.ORIENTATION_PORTRAIT:
-                view_instance = (View)findViewById(R.id.linearLayoutDown);
-                view_instance.setBackgroundResource(R.drawable.down);
-                params=view_instance.getLayoutParams();
-                params.width= ViewGroup.LayoutParams.MATCH_PARENT;
-                params.height= display.getHeight()/8;
-                myll = (LinearLayout) findViewById(R.id.linearLayoutDown);
-                myll.setOrientation(LinearLayout.HORIZONTAL);
-                view_instance.setLayoutParams(params);
 
-                view_instance = (View)findViewById(R.id.linearLayout);
-                view_instance.setBackgroundResource(R.drawable.up);
-                params=view_instance.getLayoutParams();
+            case Configuration.ORIENTATION_PORTRAIT:
+                viewInstance = findViewById(R.id.linearLayoutDown);
+                viewInstance.setBackgroundResource(R.drawable.down);
+                params=viewInstance.getLayoutParams();
                 params.width= ViewGroup.LayoutParams.MATCH_PARENT;
-                params.height= display.getHeight()/8;
-                myll = (LinearLayout) findViewById(R.id.linearLayout);
+                params.height= display.getHeight()/RATIO;
+                myll = (LinearLayout)viewInstance;
                 myll.setOrientation(LinearLayout.HORIZONTAL);
-                view_instance.setLayoutParams(params);
+                viewInstance.setLayoutParams(params);
+
+                viewInstance = findViewById(R.id.linearLayoutUp);
+                viewInstance.setBackgroundResource(R.drawable.up);
+                params=viewInstance.getLayoutParams();
+                params.width= ViewGroup.LayoutParams.MATCH_PARENT;
+                params.height= display.getHeight()/RATIO;
+                myll = (LinearLayout)viewInstance;
+                myll.setOrientation(LinearLayout.HORIZONTAL);
+                viewInstance.setLayoutParams(params);
 
                 params = preview.getLayoutParams();
                 params.width = display.getWidth();
-                params.height = display.getHeight()*6/8;
+                params.height = display.getHeight()*(RATIO-2)/RATIO;
                 preview.setLayoutParams(params);
-
-
-
-                Log.i(TAG, "portrait orientation");
                 break;
+
             default:
                 setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
-                Log.i("orientation", "uncs");
+
         }
 
 
@@ -382,7 +339,6 @@ public class MainActivity extends Activity implements  AutoFocusCallback{
         flashButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Log.i("flash", "stisnuo");
 
                 if (flash.equals(FLASH_MODE_ON)) {
                     flash = FLASH_MODE_OFF;
@@ -397,6 +353,7 @@ public class MainActivity extends Activity implements  AutoFocusCallback{
         });
 
         imagesNumberButton.setOnClickListener(new View.OnClickListener() {
+
             AlertDialog alertDialog;
 
             @Override
@@ -429,13 +386,13 @@ public class MainActivity extends Activity implements  AutoFocusCallback{
             @Override
             public void onClick(View arg0) {
 
-                final CharSequence[] items = {"Detection sound","Countdown sound","Shutter sound"};
+                final CharSequence[] items = {"Detection sound", "Countdown sound", "Shutter sound"};
                 // arraylist to keep the selected items
-                final ArrayList seletedItems=new ArrayList();
+                final ArrayList seletedItems = new ArrayList();
 
                 AlertDialog.Builder builder = new AlertDialog.Builder(context);
                 builder.setTitle("Select sounds");
-                boolean[] selected = {soundDetection,soundCountdown,soundShutter};
+                boolean[] selected = {soundDetection, soundCountdown, soundShutter};
                 builder.setMultiChoiceItems(items, selected,
                         new DialogInterface.OnMultiChoiceClickListener() {
                             @Override
@@ -454,33 +411,20 @@ public class MainActivity extends Activity implements  AutoFocusCallback{
                         .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int id) {
-                                if (seletedItems.contains(0)) {
-                                    soundDetection = true;
-                                } else {
-                                    soundDetection = false;
-                                }
-                                if (seletedItems.contains(1)) {
-                                    soundCountdown = true;
-                                } else {
-                                    soundCountdown = false;
-                                }
-                                if (seletedItems.contains(2)) {
-                                    soundShutter = true;
-                                } else {
-                                    soundShutter = false;
-                                }
+                                soundDetection = seletedItems.contains(0);
+                                soundCountdown = seletedItems.contains(1);
+                                soundShutter = seletedItems.contains(2);
 
                             }
                         })
                         .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int id) {
-                                //  Your code when user clicked on Cancel
 
                             }
                         });
 
-                dialog = builder.create();//AlertDialog dialog; create like this outside onClick
+                dialog = builder.create();
                 dialog.show();
             }
         });
@@ -489,18 +433,13 @@ public class MainActivity extends Activity implements  AutoFocusCallback{
             @Override
             public void onClick(View v) {
 
-                if(cameraOrientation == Camera.CameraInfo.CAMERA_FACING_BACK){
+                if (cameraOrientation == Camera.CameraInfo.CAMERA_FACING_BACK) {
                     cameraOrientation = Camera.CameraInfo.CAMERA_FACING_FRONT;
-                }
-                else {
+                } else {
                     cameraOrientation = Camera.CameraInfo.CAMERA_FACING_BACK;
                 }
                 Bundle state = new Bundle();
-                state.putInt("numberOfImages",3);
                 onCreate(state);
-
-
-
 
 
             }
@@ -521,8 +460,6 @@ public class MainActivity extends Activity implements  AutoFocusCallback{
                 if (!lastPhoto.equals("")){
                     Intent intent=new Intent();
                     intent.setAction(Intent.ACTION_VIEW);
-
-                    //intent.setDataAndType(Uri.fromFile(mediaFile), "image/*");
                     intent.setDataAndType(Uri.fromFile(new File(lastPhoto)), "image/*");
 
                     PackageManager pm = getPackageManager();
@@ -531,7 +468,6 @@ public class MainActivity extends Activity implements  AutoFocusCallback{
                         Log.i(TAG,info.toString());
                     }
                     for (int i = 0; i < resInfo.size(); i++) {
-                        // Extract the label, append it, and repackage it in a LabeledIntent
                         ResolveInfo ri = resInfo.get(i);
                         String packageName = ri.activityInfo.packageName;
                         intent.setPackage(packageName);
@@ -541,22 +477,6 @@ public class MainActivity extends Activity implements  AutoFocusCallback{
                     showToast("No images yet");
                 }
 
-                //   startActivity(new Intent("com.android.gallery3d"));
-                // notifySystemWithImage(new File(Environment.getExternalStorageDirectory().toString()));
-                /*Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(
-                        "content://media/internal/images/media"));
-                File mediaStorageDir = new File(
-                        Environment
-                                .getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
-                        "MyCameraApp");
-
-                startActivity(intent);
-                notifySystemWithImage(storedImageFile);
-                Intent intent = new Intent();
-                intent.setAction(Intent.ACTION_VIEW);
-                intent.setDataAndType(Uri.parse("/storage/emulated/0/Pictures/MyCameraApp/adrianfotka_20150829_053445.jpg"), "image/*");
-                startActivity(intent); */
-                //startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("content://media/external/images/media/MyCameraApp/adrianfotka_20150829_053445.jpg")));
             }
         });
 
@@ -584,14 +504,12 @@ public class MainActivity extends Activity implements  AutoFocusCallback{
 
 
     public void takePicture(android.graphics.Rect focusArea) throws InterruptedException {
-        Log.i(TAG,"ulazim u takePicture metodu");
 
         locked = true;
 
         Camera.Parameters cameraParameters = mCamera.getParameters();
         ArrayList<Camera.Area> focusAreas = new ArrayList<Camera.Area>();
         focusAreas.add(new Area(focusArea, 1000));
-        Log.i(TAG, "prolaz 1");
         try{
 
             if (cameraParameters.getMaxNumFocusAreas() > 0){
@@ -607,14 +525,14 @@ public class MainActivity extends Activity implements  AutoFocusCallback{
 
         }
         catch (Exception e){
-            Log.i(TAG,"prolaz neuspio "+e);
+            Log.i(TAG,"[MainActivity] Unable to set camera parameters: "+e);
         }
-        Log.i(TAG, "prolaz 2");
+
 
         tvCountDown.setTextSize(100);
-        Log.i(TAG, "prolaz 3");
+
         if (timerTime != 0) {
-            Log.i(TAG,"prolaz 4");
+
             tvCountDown.setText(Integer.toString(timerTime));
             Thread th = new Thread(new Runnable() {
                 private long startTime = System.currentTimeMillis();
@@ -639,7 +557,7 @@ public class MainActivity extends Activity implements  AutoFocusCallback{
                             }
 
                         });
-                        Log.i(TAG, "prolaz 4");
+
                         if (isOver) {
                             mCamera.autoFocus(thisClass);
                             mCamera.takePicture(null, null, mPicture.get());
@@ -660,25 +578,18 @@ public class MainActivity extends Activity implements  AutoFocusCallback{
             });
             th.start();
         } else {
-            Log.i(TAG,"prolaz 5");
             mCamera.autoFocus(thisClass);
             mCamera.takePicture(null, null, mPicture.get());
             picturesTaken ++;
-            Log.i(TAG,"prolaz 6");
-
         }
-        Log.i(TAG, "izlazim iz ulazim u takePicture metodu");
+
 
     }
 
     public void setCameraDisplayOrientation(Activity activity,
                                             int cameraId, android.hardware.Camera camera) {
-        Log.i(TAG,"orientation iside rotation method= " + deviceOrientation);
 
-
-
-        CameraInfo info =
-                new CameraInfo();
+        CameraInfo info = new CameraInfo();
 
         getCameraInfo(cameraId, info);
 
@@ -710,7 +621,6 @@ public class MainActivity extends Activity implements  AutoFocusCallback{
 
         camera.setDisplayOrientation(result);
 
-
     }
 
 
@@ -736,9 +646,9 @@ public class MainActivity extends Activity implements  AutoFocusCallback{
                         fos.write(data);
                         fos.close();
                     }  catch (IOException e) {
+                        Log.i(TAG,"[MainActivity] Error writing data");
                     }
 
-                    //lastPhoto.setImageURI(Uri.fromFile(pictureFile));
                     BitmapFactory.Options options = new BitmapFactory.Options();
                     options.inDither = false;
                     options.inPreferredConfig = Bitmap.Config.ARGB_8888;
@@ -760,6 +670,7 @@ public class MainActivity extends Activity implements  AutoFocusCallback{
         }
     };
 
+
     private File getOutputMediaFile() {
 
         File mediaStorageDir = new File(
@@ -768,23 +679,20 @@ public class MainActivity extends Activity implements  AutoFocusCallback{
                 "Selphy");
         if (!mediaStorageDir.exists()) {
             if (!mediaStorageDir.mkdirs()) {
-                Log.d("Selphy", "failed to create directory");
+                Log.i(TAG, "[MainActivity] Failed to create directory.");
                 return null;
             }
         }
-        // Create a media file name
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss")
                 .format(new Date());
 
-        mediaFile = new File(mediaStorageDir.getPath() + File.separator
-                + "selphy_" +timeStamp + ".jpg");
+        File mediaFile = new File(mediaStorageDir.getPath() + File.separator
+                + "selphy_" + timeStamp + ".jpg");
 
-        editor.putString("lastPhoto",mediaFile.getAbsolutePath());
+        editor.putString("lastPhoto", mediaFile.getAbsolutePath());
         editor.apply();
         Log.i(TAG, "media: " + mediaFile.getAbsolutePath());
 
-
-        storedImageFile = mediaFile;
         return mediaFile;
     }
 
@@ -802,148 +710,9 @@ public class MainActivity extends Activity implements  AutoFocusCallback{
 
     @Override
     public void onConfigurationChanged(Configuration myConfig) {
-        Log.i(TAG, "CHANGED");
+
         setCameraDisplayOrientation(this, 0, mCamera);
         super.onConfigurationChanged(myConfig);
-        int orient = getResources().getConfiguration().orientation;
-        deviceOrientation = orient;
-        //RelativeLayout.LayoutParams params = null;
-        View view_instance;
-        LinearLayout myll;
-        ViewGroup.LayoutParams params;
-        //final float scale = context.getResources().getDisplayMetrics().density;
-        //int pixels = (int) (70 * scale + 0.5f);
-        Display display = getWindowManager().getDefaultDisplay();
-
-        switch(orient) {
-
-            case Configuration.ORIENTATION_LANDSCAPE:
-                //setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
-                view_instance = (View)findViewById(R.id.linearLayoutDown);
-                params=view_instance.getLayoutParams();
-                //params.width= pixels;
-                params.width = display.getWidth()/8;
-                params.height= ViewGroup.LayoutParams.MATCH_PARENT;
-                myll = (LinearLayout) findViewById(R.id.linearLayoutDown);
-                myll.setOrientation(LinearLayout.VERTICAL);
-                view_instance.setLayoutParams(params);
-
-
-                view_instance = (View)findViewById(R.id.linearLayout);
-                view_instance.setBackgroundResource(R.drawable.up_vertical);
-                params=view_instance.getLayoutParams();
-                //params.width= pixels;
-                params.width = display.getWidth()/8;
-                params.height= ViewGroup.LayoutParams.MATCH_PARENT;
-                myll = (LinearLayout) findViewById(R.id.linearLayout);
-                myll.setOrientation(LinearLayout.VERTICAL);
-                view_instance.setLayoutParams(params);
-
-                params = preview.getLayoutParams();
-                params.width = display.getWidth()*6/8;
-                params.height = display.getHeight();
-                preview.setLayoutParams(params);
-
-
-
-
-                Log.i(TAG, "landscape orientation");
-                break;
-            case Configuration.ORIENTATION_PORTRAIT:
-                view_instance = (View)findViewById(R.id.linearLayoutDown);
-                params=view_instance.getLayoutParams();
-                params.width= ViewGroup.LayoutParams.MATCH_PARENT;
-                params.height= display.getHeight()/8;
-                myll = (LinearLayout) findViewById(R.id.linearLayoutDown);
-                myll.setOrientation(LinearLayout.HORIZONTAL);
-                view_instance.setLayoutParams(params);
-
-                view_instance = (View)findViewById(R.id.linearLayout);
-                view_instance.setBackgroundResource(R.drawable.up_vertical);
-                params=view_instance.getLayoutParams();
-                params.width= ViewGroup.LayoutParams.MATCH_PARENT;
-                params.height= display.getHeight()/8;
-                myll = (LinearLayout) findViewById(R.id.linearLayout);
-                myll.setOrientation(LinearLayout.HORIZONTAL);
-                view_instance.setLayoutParams(params);
-
-                params = preview.getLayoutParams();
-                params.width = display.getWidth();
-                params.height = display.getHeight()*6/8;
-                preview.setLayoutParams(params);
-
-
-
-                Log.i(TAG, "portrait orientation");
-                break;
-            default:
-                setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
-                Log.i("orientation", "uncs");
-        }
-
-
-
-    }
-
-
-    private  MediaScannerConnection conn;
-    private void notifySystemWithImage(final File imageFile) {
-
-        conn = new MediaScannerConnection(this, new MediaScannerConnection.MediaScannerConnectionClient() {
-
-            @Override
-            public void onScanCompleted(String path, Uri uri) {
-
-                try {
-                    if (uri != null) {
-                        Intent intent = new Intent(Intent.ACTION_VIEW);
-                        intent.setDataAndType(uri, "image/*");
-                        startActivity(intent);
-                    }
-                } finally {
-                    conn.disconnect();
-                    conn = null;
-                }
-            }
-
-            @Override
-            public void onMediaScannerConnected() {
-                Uri uri =  Uri.fromFile(new File( Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM),"/"+"MyCameraApp/adrianfotka.jpg" ));
-                Intent intent = new Intent(android.content.Intent.ACTION_VIEW);
-                String mime = "*/*";
-                MimeTypeMap mimeTypeMap = MimeTypeMap.getSingleton();
-                if (mimeTypeMap.hasExtension(
-                        mimeTypeMap.getFileExtensionFromUrl(uri.toString())))
-                    mime = mimeTypeMap.getMimeTypeFromExtension(
-                            mimeTypeMap.getFileExtensionFromUrl(uri.toString()));
-                intent.setDataAndType(uri,mime);
-                startActivity(intent);
-         /*        Log.i(TAG,"imFile="+imageFile);
-            //    File imageFile2 = new File("/storage/emulated/0/Pictures/MyCameraApp/adrianfotka.jpg");
-                File imageFile2 = new File("/storage/emulated/0/DCIM/Camera/20150927_134341.jpg");
-               // conn.scanFile(imageFile2.getAbsolutePath(), "*");
-               // conn.scanFile(imageFile.getAbsolutePath());
-
-                try {
-                    Log.d("onScanCompleted",uri.toString() + "success"+conn);
-                    if (uri != null)
-                    {
-
-                        Intent intent = new Intent(Intent.ACTION_DEFAULT);
-                        intent.setData(uri);
-                        startActivity(intent);
-                    }
-                } finally
-
-                {
-                    conn.disconnect();
-                    conn = null;
-                }
-                */
-            }
-        });
-
-        conn.connect();
     }
 
     public Bitmap getRoundedShape(Bitmap scaleBitmapImage) {
@@ -962,10 +731,9 @@ public class MainActivity extends Activity implements  AutoFocusCallback{
                     Path.Direction.CCW);
 
             canvas.clipPath(path);
-            Bitmap sourceBitmap = scaleBitmapImage;
-            canvas.drawBitmap(sourceBitmap,
-                    new Rect(0, 0, sourceBitmap.getWidth(),
-                            sourceBitmap.getHeight()),
+            canvas.drawBitmap(scaleBitmapImage,
+                    new Rect(0, 0, scaleBitmapImage.getWidth(),
+                            scaleBitmapImage.getHeight()),
                     new Rect(0, 0, targetWidth, targetHeight), null);
             return targetBitmap;
         } else {

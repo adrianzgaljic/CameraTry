@@ -87,10 +87,7 @@ public class DrawingSurface extends SurfaceView implements SurfaceHolder.Callbac
         }
 
 
-
-       // canvas.drawRect(rect.x*ratioX, rect.y*ratioY, (rect.x + rect.width)*ratioX, (rect.y + rect.height)*ratioY, paint);
         canvas.drawRect((float)(rect.tl().x)*ratioX, (float)(rect.tl().y)*ratioY, ((float)(rect.tl().x)+ rect.width)*ratioX, ((float)(rect.tl().y) + rect.height)*ratioY, paint);
-
         mHolder.unlockCanvasAndPost(canvas);
 
     }
@@ -107,7 +104,7 @@ public class DrawingSurface extends SurfaceView implements SurfaceHolder.Callbac
 
 
     public void playSound(){
-        if (mActivity.soundDetection){
+        if (MainActivity.soundDetection){
             soundPool.play(soundId, 1, 1, 0, 0, 1);
         }
     }

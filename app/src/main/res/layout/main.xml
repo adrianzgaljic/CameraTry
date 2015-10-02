@@ -84,7 +84,7 @@
         android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="70dp"
-        android:id="@+id/linearLayout"
+        android:id="@+id/linearLayoutUp"
         android:background="@drawable/up_vertical"
         android:gravity="center"
         android:layout_alignParentTop="false"
