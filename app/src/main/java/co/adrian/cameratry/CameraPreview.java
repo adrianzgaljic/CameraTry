@@ -8,6 +8,7 @@ import android.graphics.Paint;
 import android.graphics.YuvImage;
 import android.hardware.Camera;
 import android.os.AsyncTask;
+import android.os.Bundle;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -79,16 +80,17 @@ public class CameraPreview extends SurfaceView implements
             mCamera.setPreviewCallback(null);
         } catch (Exception e) {
             Log.e(TAG,"[CameraPreview] error creating preview "+e.toString());
+            mActivity.onCreate(new Bundle());
         }
 
     }
 
     @Override
     public void surfaceDestroyed(SurfaceHolder surfaceHolder) {
-            Log.e(TAG,"[CameraPreview] surface destroyed");
+            Log.e(TAG, "[CameraPreview] surface destroyed");
             this.getHolder().removeCallback(this);
-            mCamera.stopPreview();
             mCamera.setPreviewCallback(null);
+            mCamera.stopPreview();
             mCamera.release();
     }
 
@@ -111,7 +113,6 @@ public class CameraPreview extends SurfaceView implements
                 @Override
                 public void onPreviewFrame(byte[] data, Camera camera) {
                     try {
-
 
                         if (mActivity.isOver && !processInProgress) {
                             if (MainActivity.detectionStarted) {
@@ -141,6 +142,7 @@ public class CameraPreview extends SurfaceView implements
 
         } catch (Exception e) {
             Log.i(TAG, "[CameraPreview] Error setting preview callback");
+
         }
 
     }
@@ -179,7 +181,12 @@ public class CameraPreview extends SurfaceView implements
 
             if (orient == Configuration.ORIENTATION_PORTRAIT){
                 Core.transpose(mat, mat);
-                Core.flip(mat, mat, 1);
+                if (MainActivity.cameraOrientation == Camera.CameraInfo.CAMERA_FACING_FRONT){
+                    Core.flip(mat, mat, 0);
+                } else  {
+                    Core.flip(mat, mat, 1);
+                }
+
             }
             faceDetections = new MatOfRect();
 
@@ -188,7 +195,7 @@ public class CameraPreview extends SurfaceView implements
             try {
                 faceDetector.empty();
                 faceDetector.detectMultiScale(mat, faceDetections);
-                faceDetector.detectMultiScale(mat, faceDetections,1.1,4,1,new Size(50,50),new Size(500,500));
+                faceDetector.detectMultiScale(mat, faceDetections,1.1,4,1,new Size(50,50),new Size(1000,1000));
             } catch (Exception e) {
                 Log.i(TAG, "[CameraPreview] Error during face detection" + e);
             }

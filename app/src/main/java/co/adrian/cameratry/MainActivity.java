@@ -14,9 +14,15 @@ import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Matrix;
+import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.PixelFormat;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
+import android.graphics.RectF;
 import android.graphics.drawable.AnimationDrawable;
 import android.hardware.Camera;
 import android.media.AudioManager;
@@ -40,6 +46,7 @@ import android.widget.Toast;
 
 import org.opencv.objdetect.CascadeClassifier;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -87,7 +94,7 @@ public class MainActivity extends Activity implements  AutoFocusCallback{
     private SoundPool soundPool;
     private int soundIdCountdown;
     private int soundIdShutter;
-    private int cameraOrientation = CameraInfo.CAMERA_FACING_BACK;
+    protected static int cameraOrientation = CameraInfo.CAMERA_FACING_BACK;
     private Button flashButton;
     private Button timerButton;
     private Button imagesNumberButton;
@@ -95,6 +102,7 @@ public class MainActivity extends Activity implements  AutoFocusCallback{
     private ImageView ivPhoto;
     private SharedPreferences.Editor editor;
     private SharedPreferences prefs;
+    private CameraPreview mCameraPreview;
 
     public final int RATIO = 8;
 
@@ -157,7 +165,7 @@ public class MainActivity extends Activity implements  AutoFocusCallback{
         drawingSurfaceLayout.removeAllViews();
         drawingSurfaceLayout.addView(drawingSurface);
 
-        CameraPreview mCameraPreview = new CameraPreview(this, mCamera, drawingSurface);
+        mCameraPreview = new CameraPreview(this, mCamera, drawingSurface);
         FrameLayout preview = (FrameLayout) findViewById(R.id.camera_preview);
         preview.addView(mCameraPreview);
 
@@ -167,6 +175,17 @@ public class MainActivity extends Activity implements  AutoFocusCallback{
         Button soundButton = (Button) findViewById(R.id.button_sound);
         Button cameraChangeButton = (Button) findViewById(R.id.button_change_camera);
         btnStartDetection = (Button) findViewById(R.id.button);
+
+        tvCountDown.setBackgroundResource(R.drawable.shutter_animation);
+        AnimationDrawable b2Amin = (AnimationDrawable) tvCountDown.getBackground();
+        b2Amin.setOneShot(true);
+        b2Amin.start();
+
+        if (detectionStarted){
+            btnStartDetection.setBackgroundResource(R.drawable.animation);
+            AnimationDrawable b1Amin = (AnimationDrawable) btnStartDetection.getBackground();
+            b1Amin.start();
+        }
 
 
         if (numberOfImages==0){
@@ -205,7 +224,8 @@ public class MainActivity extends Activity implements  AutoFocusCallback{
         editor = prefs.edit();
         ivPhoto = (ImageView) findViewById(R.id.lastPhoto);
         Bitmap image = BitmapFactory.decodeFile(prefs.getString("lastPhoto",null));
-        ivPhoto.setImageBitmap(getRoundedShape(image));
+        //ivPhoto.setImageBitmap(getRoundedShape(image));
+        ivPhoto.setImageBitmap(getCroppedBitmap(image,100));
         int orient = getResources().getConfiguration().orientation;
 
         View viewInstance;
@@ -279,10 +299,16 @@ public class MainActivity extends Activity implements  AutoFocusCallback{
 
             @Override
             public void onClick(View arg0) {
-                btnStartDetection.setBackgroundResource(R.drawable.animation);
-                AnimationDrawable b1Amin = (AnimationDrawable) btnStartDetection.getBackground();
-                b1Amin.start();
-                detectionStarted = true;
+                if (detectionStarted){
+                    btnStartDetection.setBackgroundResource(R.drawable.start);
+                    detectionStarted = false;
+                } else {
+                    btnStartDetection.setBackgroundResource(R.drawable.animation);
+                    AnimationDrawable b1Amin = (AnimationDrawable) btnStartDetection.getBackground();
+                    b1Amin.start();
+                    detectionStarted = true;
+                }
+
 
             }
         });
@@ -446,13 +472,7 @@ public class MainActivity extends Activity implements  AutoFocusCallback{
         });
 
 
-        tvCountDown.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                detectionStarted = true;
-                tvCountDown.setText("");
-            }
-        });
+
 
         ivPhoto.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
@@ -488,7 +508,10 @@ public class MainActivity extends Activity implements  AutoFocusCallback{
     @Override
     public void onResume() {
         Log.e(TAG, "[MainActivity] onResume");
+        //mCameraPreview.surfaceCreated(mCameraPreview.getHolder());
         super.onResume();  // Always call the superclass method first
+        mCameraPreview.surfaceCreated(mCameraPreview.getHolder());
+       // onCreate(new Bundle());
     }
 
     @Override public void onPause() {
@@ -641,6 +664,35 @@ public class MainActivity extends Activity implements  AutoFocusCallback{
 
                     }
 
+                    BitmapFactory.Options options = new BitmapFactory.Options();
+                    options.inDither = false;
+                    options.inPreferredConfig = Bitmap.Config.ARGB_8888;
+                    Bitmap image = BitmapFactory.decodeByteArray(data, 0, data.length, options);
+
+                    Matrix matrix = new Matrix();
+                    //matrix.postRotate(90);
+                   // Bitmap scaledBitmap = Bitmap.createScaledBitmap(image, image.getWidth(), image.getHeight(), true);
+                   // Bitmap rotatedBitmap = Bitmap.createBitmap(scaledBitmap, 0, 0, scaledBitmap.getWidth(), scaledBitmap.getHeight(), matrix, true);
+                    Bitmap rotatedBitmap;
+                    if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT){
+                        if (cameraOrientation == CameraInfo.CAMERA_FACING_BACK){
+                            matrix.postRotate(90);
+
+                        } else {
+                            matrix.postRotate(-90);
+                        }
+                        Bitmap scaledBitmap = Bitmap.createScaledBitmap(image, image.getWidth(), image.getHeight(), true);
+                        rotatedBitmap = Bitmap.createBitmap(scaledBitmap, 0, 0, scaledBitmap.getWidth(), scaledBitmap.getHeight(), matrix, true);
+                    } else {
+                        rotatedBitmap = image;
+                    }
+
+
+
+                    ByteArrayOutputStream stream = new ByteArrayOutputStream();
+                    rotatedBitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
+                    data = stream.toByteArray();
+
                     try {
                         FileOutputStream fos = new FileOutputStream(pictureFile);
                         fos.write(data);
@@ -649,12 +701,11 @@ public class MainActivity extends Activity implements  AutoFocusCallback{
                         Log.i(TAG,"[MainActivity] Error writing data");
                     }
 
-                    BitmapFactory.Options options = new BitmapFactory.Options();
-                    options.inDither = false;
-                    options.inPreferredConfig = Bitmap.Config.ARGB_8888;
 
-                    Bitmap image = BitmapFactory.decodeByteArray(data, 0, data.length, options);
-                    ivPhoto.setImageBitmap(getRoundedShape(image));
+
+
+                    //ivPhoto.setImageBitmap(getRoundedShape(image));
+                    ivPhoto.setImageBitmap(getCroppedBitmap(image,100));
                     ContentValues values = new ContentValues();
 
                     values.put(MediaStore.Images.Media.DATE_TAKEN, System.currentTimeMillis());
@@ -662,7 +713,7 @@ public class MainActivity extends Activity implements  AutoFocusCallback{
                     values.put(MediaStore.MediaColumns.DATA, pictureFile.getAbsolutePath());
                     context.getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
                     locked = false;
-
+                    onCreate(new Bundle());
 
 
                 }
@@ -715,32 +766,12 @@ public class MainActivity extends Activity implements  AutoFocusCallback{
         super.onConfigurationChanged(myConfig);
     }
 
-    public Bitmap getRoundedShape(Bitmap scaleBitmapImage) {
-        if (scaleBitmapImage!=null){
-            int targetWidth = 50;
-            int targetHeight = 50;
-            Bitmap targetBitmap = Bitmap.createBitmap(targetWidth,
-                    targetHeight,Bitmap.Config.ARGB_8888);
 
-            Canvas canvas = new Canvas(targetBitmap);
-            Path path = new Path();
-            path.addCircle(((float) targetWidth - 1) / 2,
-                    ((float) targetHeight - 1) / 2,
-                    (Math.min(((float) targetWidth),
-                            ((float) targetHeight)) / 2),
-                    Path.Direction.CCW);
 
-            canvas.clipPath(path);
-            canvas.drawBitmap(scaleBitmapImage,
-                    new Rect(0, 0, scaleBitmapImage.getWidth(),
-                            scaleBitmapImage.getHeight()),
-                    new Rect(0, 0, targetWidth, targetHeight), null);
-            return targetBitmap;
-        } else {
-            return null;
-        }
 
-    }
+
+
+
 
     public void showToast(String text){
         Context context = getApplicationContext();
@@ -750,5 +781,38 @@ public class MainActivity extends Activity implements  AutoFocusCallback{
         toast.show();
     }
 
+
+    public static Bitmap getCroppedBitmap(Bitmap bitmap, int s) {
+        Bitmap output;
+
+        if (bitmap.getWidth() > bitmap.getHeight()) {
+            output = Bitmap.createBitmap(bitmap.getHeight(), bitmap.getHeight(), Bitmap.Config.ARGB_8888);
+        } else {
+            output = Bitmap.createBitmap(bitmap.getWidth(), bitmap.getWidth(), Bitmap.Config.ARGB_8888);
+        }
+
+        Canvas canvas = new Canvas(output);
+
+        final int color = Color.WHITE;
+        final Paint paint = new Paint();
+        final Rect rect = new Rect(0, 0, bitmap.getWidth(), bitmap.getHeight());
+
+        float r = 0;
+
+        if (bitmap.getWidth() > bitmap.getHeight()) {
+            r = bitmap.getHeight() / 2;
+        } else {
+            r = bitmap.getWidth() / 2;
+        }
+
+        paint.setAntiAlias(true);
+        canvas.drawARGB(0, 0, 0, 0);
+        paint.setColor(color);
+        canvas.drawCircle(r, r, r+10, paint);
+
+        paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_IN));
+        canvas.drawBitmap(bitmap, rect, rect, paint);
+        return output;
+    }
 
 }

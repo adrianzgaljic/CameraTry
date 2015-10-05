@@ -92,7 +92,6 @@
         android:layout_alignParentStart="true"
         android:layout_alignParentRight="false"
         android:layout_alignParentBottom="false"
-
         android:layout_alignWithParentIfMissing="false">
 
         <ImageView
@@ -117,7 +116,7 @@
             android:textColor="#ff7a44"
             android:textSize="15dp"
             android:textStyle="bold"
-            android:layout_gravity="center" />
+            android:layout_gravity="center"/>
 
         <Button
             android:layout_marginLeft="@dimen/spacingLeft"
