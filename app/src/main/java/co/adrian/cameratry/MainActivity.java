@@ -17,12 +17,10 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
-import android.graphics.Path;
 import android.graphics.PixelFormat;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
-import android.graphics.RectF;
 import android.graphics.drawable.AnimationDrawable;
 import android.hardware.Camera;
 import android.media.AudioManager;
@@ -224,8 +222,12 @@ public class MainActivity extends Activity implements  AutoFocusCallback{
         editor = prefs.edit();
         ivPhoto = (ImageView) findViewById(R.id.lastPhoto);
         Bitmap image = BitmapFactory.decodeFile(prefs.getString("lastPhoto",null));
-        //ivPhoto.setImageBitmap(getRoundedShape(image));
-        ivPhoto.setImageBitmap(getCroppedBitmap(image,100));
+        try{
+            ivPhoto.setImageBitmap(getCroppedBitmap(image));
+        }catch(Exception e){
+            Log.i(TAG,"[MainActivity] error setting preview image");
+        }
+
         int orient = getResources().getConfiguration().orientation;
 
         View viewInstance;
@@ -413,7 +415,7 @@ public class MainActivity extends Activity implements  AutoFocusCallback{
             public void onClick(View arg0) {
 
                 final CharSequence[] items = {"Detection sound", "Countdown sound", "Shutter sound"};
-                // arraylist to keep the selected items
+
                 final ArrayList seletedItems = new ArrayList();
 
                 AlertDialog.Builder builder = new AlertDialog.Builder(context);
@@ -705,7 +707,7 @@ public class MainActivity extends Activity implements  AutoFocusCallback{
 
 
                     //ivPhoto.setImageBitmap(getRoundedShape(image));
-                    ivPhoto.setImageBitmap(getCroppedBitmap(image,100));
+                    ivPhoto.setImageBitmap(getCroppedBitmap(image));
                     ContentValues values = new ContentValues();
 
                     values.put(MediaStore.Images.Media.DATE_TAKEN, System.currentTimeMillis());
@@ -782,7 +784,7 @@ public class MainActivity extends Activity implements  AutoFocusCallback{
     }
 
 
-    public static Bitmap getCroppedBitmap(Bitmap bitmap, int s) {
+    public static Bitmap getCroppedBitmap(Bitmap bitmap) {
         Bitmap output;
 
         if (bitmap.getWidth() > bitmap.getHeight()) {
@@ -797,7 +799,7 @@ public class MainActivity extends Activity implements  AutoFocusCallback{
         final Paint paint = new Paint();
         final Rect rect = new Rect(0, 0, bitmap.getWidth(), bitmap.getHeight());
 
-        float r = 0;
+        float r;
 
         if (bitmap.getWidth() > bitmap.getHeight()) {
             r = bitmap.getHeight() / 2;
